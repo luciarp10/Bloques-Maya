@@ -1,8 +1,8 @@
 Funciones: 
 	contar_alrededor.
-		input: coorx, coory
+		input: coorx, coory, tablero
 		output: num_alrededor_iguales
-		//Si num_alrededor_iguales=0 llamar a quitar vida y a poner a 0 la puntuación
+		//Si num_alrededor_iguales<2 llamar a quitar vida, a poner a 0 la puntuación y eliminamos solo el bloque seleccionado
 	
 	borrar_iguales. 
 		input: coorx, coory, tablero 
@@ -13,7 +13,7 @@ Funciones:
 		output: tablero_turno_siguiente
 
 	get_bloque:	
-		input: coorx, coory 
+		input: coorx, coory, tablero
 		output: letra_o_num
 
 	desplazar_izq:
@@ -38,6 +38,23 @@ Funciones:
 
 	es_columna_vacia: 
 		input: coorx
-		output: true/false	
-
- 
+		output: true/false
+	
+	cambiar_estado:
+		input: coorx, coory, estado, tablero
+		output: tablero_modificado
+	
+	explotar_bombas:
+		input: coorx, coory, tablero
+		output: tablero_modifcado
+		
+	obtener_bloques_vecinos:
+		input: coorx, coory, tablero
+		output: lista_vecinos
+		
+	pulsar_bloque:
+		input: coorx, coory, tablero
+		output: tablero
+		
+	
+	
