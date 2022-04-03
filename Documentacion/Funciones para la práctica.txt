@@ -14,7 +14,7 @@ Funciones:
 
 	get_bloque:	
 		input: coorx, coory, tablero
-		output: letra_o_num
+		output: letra
 
 	desplazar_izq:
 		input: tablero
@@ -56,5 +56,16 @@ Funciones:
 		input: coorx, coory, tablero
 		output: tablero
 		
+	pintar_tablero:
+		input: tablero
+		output: tablero por pantalla
+	
+	pintar_fila:
+		input: lista
+		output: fila por pantalla
+
+	leer_estado:
+		input: estado
+		output: letra
 	
 	
