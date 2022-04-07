@@ -67,5 +67,3 @@ Funciones:
 	leer_estado:
 		input: estado
 		output: letra
-	
-	
