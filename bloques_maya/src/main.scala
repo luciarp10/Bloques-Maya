@@ -101,6 +101,29 @@ object main extends App {
 
   }
 
+  def tablero_vacio(tablero: List[List[Int]]): Boolean = {
+    def tablero_vacio_fila(fila: List[Int]): Boolean = {
+      if (fila.isEmpty) true
+      else if (fila.head == 0) tablero_vacio_fila(fila.tail)
+      else false
+    }
+
+    if (tablero.isEmpty) true
+    else tablero_vacio_fila(tablero.head) && tablero_vacio(tablero.tail)
+  }
+
+  def actualizar_puntuacion(t1: List[List[Int]], t2: List[List[Int]], puntuacion:Int): Int = {
+    def diferencia_tableros(t1: List[List[Int]], t2: List[List[Int]]): Int = {
+      if (t1.isEmpty) 0
+      else if (t1.head == t2.head) diferencia_tableros(t1.tail, t2.tail)
+      else 1 + diferencia_tableros(t1.tail, t2.tail)
+    }
+
+    val diferentes = diferencia_tableros(t1, t2)
+    if (diferentes > 2) puntuacion + diferentes*10
+    else 0
+  }
+
   // Función que desplaza los bloques una fila hacia abajo, si el elemento de debajo tiene estado 0
   def desplazar_bloques(tablero: List[List[Int]]):List[List[Int]] = {
     def desplazar_columna(tablero: List[List[Int]], fila:Int, columna:Int):List[List[Int]] = {
@@ -109,10 +132,26 @@ object main extends App {
         val nuevo_tablero = desplazar_columna(tablero, fila + 1, columna)
         val bloque_actual = tablero(fila)(columna)
         if (nuevo_tablero(fila+1)(columna) == 0)
-          {
-            val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila+1, columna, bloque_actual)
-            cambiar_estado(nuevo_tablero2, fila, columna, 0)
-          }
+        {
+          val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila+1, columna, bloque_actual)
+          cambiar_estado(nuevo_tablero2, fila, columna, 0)
+        }
+        else nuevo_tablero
+      }
+    }
+
+    // TODO: No traslada todas las columnas, solo la contigua a la derecha
+    def desplazar_fila(tablero:List[List[Int]], fila:Int, columna:Int):List[List[Int]] = {
+      if (columna == tablero.head.length-1 || fila==tablero.length) tablero
+      else {
+        val nuevo_tablero = desplazar_fila(tablero, fila, columna + 1)
+        val bloque_actual = tablero(fila)(columna)
+        if (nuevo_tablero(fila)(columna-1) == 0)
+        {
+          val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila, columna-1, bloque_actual)
+          val nuevo_tablero3 = cambiar_estado(nuevo_tablero2, fila, columna, 0)
+          desplazar_fila(nuevo_tablero3, fila+1, columna)
+        }
         else nuevo_tablero
       }
     }
@@ -126,22 +165,28 @@ object main extends App {
       if (columna == tablero(0).length) tablero
       else {
         val tablero_modificado = desplazar_bloques_aux(tablero, fila, columna + 1)
-        desplazar_columna(tablero_modificado, fila, columna)
+        val tablero_modificado2 = desplazar_columna(tablero_modificado, fila, columna)
+        if (es_columna_vacia(tablero_modificado2, columna)) desplazar_fila(tablero_modificado2, 0, columna)
+        else tablero_modificado2
       }
     }
     desplazar_bloques_aux(tablero,  0, 0)
   }
 
-  def jugar(tablero: List[List[Int]]):Unit = {
+  def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):Unit = {
+    if (!tablero_vacio(tablero)) {
       println("Nuevo turno: ")
       pintar_tablero(tablero)
       println("Introduce la posición que quieres pulsar: x,y")
       val coord = readLine()
       val nuevo_tablero = pulsar_bloque(tablero, Integer.parseInt(coord.split(",")(0)), Integer.parseInt(coord.split(",")(1)))
+      val puntuacion_nueva = actualizar_puntuacion(tablero, nuevo_tablero, puntuacion)
       val tablero_desplazado = desplazar_bloques(nuevo_tablero)
-      jugar(tablero_desplazado)
+      if (puntuacion_nueva==0) jugar(tablero_desplazado, puntuacion_nueva, vidas-1)
+      else jugar(tablero_desplazado, puntuacion_nueva, vidas)
+    }
   }
 
   val tablero = generar_tablero_aleatorio(10, 10)
-  jugar(tablero)
+  jugar(tablero,0, 8)
 }
