@@ -1,5 +1,4 @@
 import scala.io.StdIn.readLine
-import scala.reflect.internal.util.TableDef.Column
 
 object main extends App {
   def generar_tablero_aleatorio(filas: Int, columnas: Int): List[List[Int]] = {
@@ -88,12 +87,12 @@ object main extends App {
   def pulsar_bloque(tablero:List[List[Int]], fila:Int, columna:Int): List[List[Int]] ={
     val bloque = get_bloque(tablero, fila, columna)
     if (bloque != 0) {
-      val nuevo_tablero = cambiar_estado(tablero, fila, columna, 0)
+      // val nuevo_tablero = cambiar_estado(tablero, fila, columna, 0)
       bloque match {
         case 'B' => println("Has pulsado una bomba")
-        case _ => println("Has pulsado un bloque " + bloque)
+        case _ => println("Has pulsado un bloque " + bloque + " y tiene " + contar_iguales(tablero, fila, columna, Nil).length + " bloques iguales alrededor")
       }
-      nuevo_tablero
+      tablero
     } else {
       println("No hay bloque en esa posicion")
       tablero
@@ -140,25 +139,19 @@ object main extends App {
       }
     }
 
-    // TODO: No traslada todas las columnas, solo la contigua a la derecha
     def desplazar_fila(tablero:List[List[Int]], fila:Int, columna:Int):List[List[Int]] = {
-      if (columna == tablero.head.length-1 || fila==tablero.length) tablero
-      else {
-        val nuevo_tablero = desplazar_fila(tablero, fila, columna + 1)
-        val bloque_actual = tablero(fila)(columna)
-        if (nuevo_tablero(fila)(columna-1) == 0)
-        {
-          val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila, columna-1, bloque_actual)
-          val nuevo_tablero3 = cambiar_estado(nuevo_tablero2, fila, columna, 0)
-          desplazar_fila(nuevo_tablero3, fila+1, columna)
-        }
-        else nuevo_tablero
+      if (columna == tablero.head.length - 1) tablero
+      else if (fila!=tablero.length && es_columna_vacia(tablero, columna)) {
+        val nuevo_tablero = cambiar_estado(tablero, fila, columna, tablero(fila)(columna + 1))
+        val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila, columna + 1, tablero(fila)(columna))
+        desplazar_fila(nuevo_tablero2, fila + 1, columna)
       }
+      else desplazar_fila(tablero,0, columna+1)
     }
 
     def es_columna_vacia(tablero: List[List[Int]], columna:Int):Boolean = {
-      // Podemos usar .last?
-      tablero.last(columna) == 0
+      if (tablero.tail == Nil) tablero.head(columna) == 0
+      else es_columna_vacia(tablero.tail, columna)
     }
 
     def desplazar_bloques_aux(tablero: List[List[Int]], fila: Int, columna: Int):List[List[Int]] = {
@@ -166,11 +159,43 @@ object main extends App {
       else {
         val tablero_modificado = desplazar_bloques_aux(tablero, fila, columna + 1)
         val tablero_modificado2 = desplazar_columna(tablero_modificado, fila, columna)
-        if (es_columna_vacia(tablero_modificado2, columna)) desplazar_fila(tablero_modificado2, 0, columna)
+        if (es_columna_vacia(tablero_modificado2, columna)) desplazar_fila(tablero_modificado2, 0 ,columna)
         else tablero_modificado2
       }
     }
     desplazar_bloques_aux(tablero,  0, 0)
+  }
+
+  def contiene(matriz:List[List[Int]], lista:List[Int]): Boolean ={
+    if (matriz == Nil) false
+    else if (matriz.tail == Nil) listas_iguales(matriz.head, lista)
+    else contiene(matriz.tail, lista)
+  }
+
+  def listas_iguales(l1: List[Int], l2: List[Int]): Boolean = {
+    if (l1.isEmpty) l2.isEmpty
+    else if (l1.head == l2.head) listas_iguales(l1.tail, l2.tail)
+    else false
+  }
+
+  def contar_iguales(tablero: List[List[Int]], fila: Int, columna: Int, elementos: List[List[Int]]): List[List[Int]] = {
+    def contar_iguales_aux(tablero: List[List[Int]], fila:Int, columna:Int, inc_x: Int, inc_y: Int, elementos:List[List[Int]]): List[List[Int]] ={
+      if (fila + inc_x < 0 || fila + inc_x == tablero.length || columna+inc_y < 0 || columna+inc_y == tablero.head.length) elementos
+      else if (tablero(fila+inc_x)(columna+inc_y) == tablero(fila)(columna)) contar_iguales(tablero, fila+inc_x, columna+inc_y, elementos)
+      else elementos
+    }
+
+    // 3,2 --> (3,2), (3,3), (3,4)
+    print(elementos)
+
+    if (!contiene(elementos, List(fila, columna))){
+      val elem2 = List(fila, columna) :: elementos
+      val elem3 = contar_iguales_aux(tablero, fila, columna, 0, 1, elem2) // Hacia derecha
+      val elem4 = contar_iguales_aux(tablero, fila, columna, 1, 0, elem3) // Hacia abajo
+      val elem5 = contar_iguales_aux(tablero, fila, columna, 0, -1, elem4) // Hacia izquierda
+      contar_iguales_aux(tablero, fila, columna, -1, 0, elem5) // Hacia arriba
+    }
+    else elementos
   }
 
   def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):Unit = {
