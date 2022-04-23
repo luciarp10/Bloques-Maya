@@ -156,7 +156,7 @@ object main extends App {
     else tablero_vacio_fila(tablero.head) && tablero_vacio(tablero.tail)
   }
 
-  def actualizar_puntuacion(t1: List[List[Int]], t2: List[List[Int]], puntuacion:Int): Int = {
+  def actualizar_puntuacion(t1: List[List[Int]], t2: List[List[Int]], puntuacion:Int, bloque_pulsado: List[Int]): Int = {
     def diferencia_tableros(t1: List[List[Int]], t2: List[List[Int]]): Int = {
       if (t1.isEmpty && t2.isEmpty) 0
       else if (t1.isEmpty) t2.head.length + diferencia_tableros(t1, t2.tail)
@@ -173,7 +173,7 @@ object main extends App {
     }
 
     val diferentes = diferencia_tableros(t1, t2)
-    if (diferentes > 2) puntuacion + diferentes*10
+    if (diferentes > 2 || obtener_posicion(t1, obtener_columna(bloque_pulsado, 0), obtener_columna(bloque_pulsado,1)) == 8) puntuacion + diferentes*10
     else 0
   }
 
@@ -276,14 +276,19 @@ object main extends App {
     cambiar_estado(nuevo_tablero_7, fila+1, columna+1, 0) //Abajo derecha
   }
 
+  def map_to_int(list: List[String]): List[Int] = {
+    if (list == Nil) Nil
+    else list.head.toInt :: map_to_int(list.tail)
+  }
+
   def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[Int] = {
     if (!tablero_vacio(tablero) && vidas > 0) {
       println("Nuevo turno: Vidas: " + vidas + " Puntuacion: " + puntuacion)
       pintar_tablero(tablero)
       println("Introduce la posición que quieres pulsar: x,y")
-      val coord = readLine()
-      val nuevo_tablero = pulsar_bloque(tablero, Integer.parseInt(coord.split(",")(0)), Integer.parseInt(coord.split(",")(1)))
-      val puntuacion_nueva = actualizar_puntuacion(tablero, nuevo_tablero, puntuacion)
+      val coord = map_to_int(readLine().split(",").toList)
+      val nuevo_tablero = pulsar_bloque(tablero, obtener_columna(coord,0), obtener_columna(coord,1))
+      val puntuacion_nueva = actualizar_puntuacion(tablero, nuevo_tablero, puntuacion, coord)
       val tablero_desplazado = desplazar_bloques(nuevo_tablero)
       if (puntuacion_nueva==0) jugar(tablero_desplazado, puntuacion_nueva, vidas-1)
       else jugar(tablero_desplazado, puntuacion_nueva, vidas)
@@ -328,29 +333,29 @@ object main extends App {
   }
 
 
-  def bucle_juego(nivel: Int, puntuacion:Int, vidas: Int):Unit = {
+  def bucle_juego(nivel: Int, puntuacion:Int, vidas: Int, partidas:Int):Unit = {
     vidas match {
       case 0 =>
-        println("Has perdido la partida. Tu puntuación ha sido: " + puntuacion)
+        println("Has perdido la partida. Tu puntuación ha sido: " + puntuacion +" en " + partidas + " partidas.")
         menu()
       case _ =>
         val tablero = generar_tablero(nivel)
         val datos = jugar(tablero, puntuacion, vidas)
-        print(datos)
-        if (obtener_columna(datos, 1) == 0) bucle_juego(nivel, puntuacion, 0)
-        else bucle_juego(nivel, obtener_columna(datos, 0), obtener_columna(datos, 1))
+
+        if (obtener_columna(datos, 1) == 0) bucle_juego(nivel, puntuacion, 0, partidas+1)
+        else bucle_juego(nivel, obtener_columna(datos, 0), obtener_columna(datos, 1), partidas+1)
     }
   }
 
-  // TODO: Hacer menú que almacene los datos de las partidas y el tiempo jugado
+  // Hacer menú que almacene los datos de las partidas y el tiempo jugado
   def menu():Unit = {
     println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - Salir \nNivel:")
     val nivel_elegido = readLine().toInt
 
     nivel_elegido match {
-      case 1 => bucle_juego(1, 0, 8)
-      case 2 => bucle_juego(2, 0, 10)
-      case 3 => bucle_juego(3, 0, 15)
+      case 1 => bucle_juego(1, 0, 8, 0)
+      case 2 => bucle_juego(2, 0, 10,0)
+      case 3 => bucle_juego(3, 0, 15,0)
       case 4 => println("Adios, no vuelvas.")
       case _ =>
         println("Elige un nivel válido")
