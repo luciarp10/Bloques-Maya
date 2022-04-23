@@ -1,8 +1,8 @@
 Funciones: 
 	contar_alrededor.
 		input: coorx, coory, tablero
-		output: num_alrededor_iguales
-		//Si num_alrededor_iguales<2 llamar a quitar vida, a poner a 0 la puntuación y eliminamos solo el bloque seleccionado
+		output: lista_alrededor_iguales
+		//Si length(lista_alrededor_iguales)<2 llamar a quitar vida, a poner a 0 la puntuación y eliminamos solo el bloque seleccionado
 	
 	borrar_iguales. 
 		input: coorx, coory, tablero 

@@ -1,13 +1,14 @@
 import scala.io.StdIn.readLine
+import scala.util.Random
 
 object main extends App {
   // TODO: Repensar la generación del tablero con las restricciones de la práctica
-  def generar_tablero_aleatorio(filas: Int, columnas: Int): List[List[Int]] = {
+  def generar_tablero_aleatorio(filas: Int, columnas: Int, colores:Set[Int]): List[List[Int]] = {
     if (filas == 0) {
       List()
     } else {
-      val fila = List.fill(columnas)(util.Random.nextInt(8) + 1)
-      fila :: generar_tablero_aleatorio(filas - 1, columnas)
+      val fila = List.fill(columnas)(Random.shuffle(colores).head)
+      fila :: generar_tablero_aleatorio(filas - 1, columnas, colores)
     }
   }
 
@@ -69,24 +70,24 @@ object main extends App {
 
   }
 
-  def generar_color(letra: Char): String = {
+  /*def generar_color(letra: Char): String = {
     letra match {
       case 'A' => "Azul"
       case 'R' => "Rojo"
       case 'N' => ""
     }
+  }*/
+
+  def obtener_columna(fila: List[Int], columna:Int): Int = {
+    if (columna == 0) {
+      fila.head
+    } else if (columna < 0) -1
+    else {
+      obtener_columna(fila.tail, columna - 1)
+    }
   }
 
   def obtener_posicion(tablero: List[List[Int]], fila: Int, columna: Int): Int = {
-    def obtener_columna(fila: List[Int], columna:Int): Int = {
-      if (columna == 0) {
-        fila.head
-      } else if (columna < 0) -1
-      else {
-        obtener_columna(fila.tail, columna - 1)
-      }
-    }
-
     if (fila == 0) {
       obtener_columna(tablero.head, columna)
     } else if (fila < 0) -1
@@ -275,7 +276,7 @@ object main extends App {
     cambiar_estado(nuevo_tablero_7, fila+1, columna+1, 0) //Abajo derecha
   }
 
-  def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):Unit = {
+  def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[Int] = {
     if (!tablero_vacio(tablero) && vidas > 0) {
       println("Nuevo turno: Vidas: " + vidas + " Puntuacion: " + puntuacion)
       pintar_tablero(tablero)
@@ -287,13 +288,75 @@ object main extends App {
       if (puntuacion_nueva==0) jugar(tablero_desplazado, puntuacion_nueva, vidas-1)
       else jugar(tablero_desplazado, puntuacion_nueva, vidas)
     }
-    else if (vidas > 0) println("Has ganado con una puntuacion de " + puntuacion)
-    else println("Has perdido la partida")
+    else if (vidas > 0) {
+      println("Has finalizado el tablero con una puntuacion de " + puntuacion + ". Se va a generar un nuevo tablero.")
+      List(puntuacion, vidas)
+    } else {
+      println("Has perdido la partida")
+      List(puntuacion, vidas)
+    }
+  }
+
+  def colores_tablero(n_colores:Int):Set[Int] = {
+    if (n_colores == 0) Set()
+    else Set(1 + Random.nextInt(7)).++(colores_tablero(n_colores-1))
+  }
+
+  def colocar_bombas(tablero:List[List[Int]], n_bombas:Int):List[List[Int]] = {
+    if (n_bombas == 0) tablero
+    else {
+      val fila = Random.nextInt(tablero.length)
+      val columna = Random.nextInt(tablero.head.length)
+      if (tablero(fila)(columna) != 8) colocar_bombas(cambiar_estado(tablero, fila, columna, 8), n_bombas-1)
+      else colocar_bombas(tablero, n_bombas)
+    }
+  }
+
+  def generar_tablero(nivel: Int):List[List[Int]] = nivel match {
+    case 1 =>
+      val colores = colores_tablero(3)
+      val tablero = generar_tablero_aleatorio(9,11,colores)
+      colocar_bombas(tablero, 2)
+    case 2 =>
+      val colores = colores_tablero(5)
+      val tablero = generar_tablero_aleatorio(12,16,colores)
+      colocar_bombas(tablero, 3)
+    case 3 =>
+      val colores = colores_tablero(7)
+      val tablero = generar_tablero_aleatorio(25,15,colores)
+      colocar_bombas(tablero, 5)
+  }
+
+
+  def bucle_juego(nivel: Int, puntuacion:Int, vidas: Int):Unit = {
+    vidas match {
+      case 0 =>
+        println("Has perdido la partida. Tu puntuación ha sido: " + puntuacion)
+        menu()
+      case _ =>
+        val tablero = generar_tablero(nivel)
+        val datos = jugar(tablero, puntuacion, vidas)
+        print(datos)
+        if (obtener_columna(datos, 1) == 0) bucle_juego(nivel, puntuacion, 0)
+        else bucle_juego(nivel, obtener_columna(datos, 0), obtener_columna(datos, 1))
+    }
   }
 
   // TODO: Hacer menú que almacene los datos de las partidas y el tiempo jugado
+  def menu():Unit = {
+    println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - Salir \nNivel:")
+    val nivel_elegido = readLine().toInt
 
+    nivel_elegido match {
+      case 1 => bucle_juego(1, 0, 8)
+      case 2 => bucle_juego(2, 0, 10)
+      case 3 => bucle_juego(3, 0, 15)
+      case 4 => println("Adios, no vuelvas.")
+      case _ =>
+        println("Elige un nivel válido")
+        menu()
+    }
+  }
 
-  val tablero = generar_tablero_aleatorio(10, 10)
-  jugar(tablero,0, 8)
+  menu()
 }
