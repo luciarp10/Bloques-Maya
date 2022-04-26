@@ -70,14 +70,6 @@ object main extends App {
 
   }
 
-  /*def generar_color(letra: Char): String = {
-    letra match {
-      case 'A' => "Azul"
-      case 'R' => "Rojo"
-      case 'N' => ""
-    }
-  }*/
-
   def obtener_columna(fila: List[Int], columna:Int): Int = {
     if (columna == 0) {
       fila.head
@@ -300,6 +292,10 @@ object main extends App {
       println("Has perdido la partida")
       List(puntuacion, vidas)
     }
+  }
+
+  def jugar_GUI(tablero:List[List[Int]], coords:List[Int],  vidas:Int, puntuacion:Int):List[List[Int]] ={
+    return Nil
   }
 
   def colores_tablero(n_colores:Int):Set[Int] = {
