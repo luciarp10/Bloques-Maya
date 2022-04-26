@@ -1,6 +1,8 @@
 import scala.io.StdIn.readLine
 import scala.util.Random
 
+import java.lang.Integer;
+
 object main extends App {
   // TODO: Repensar la generación del tablero con las restricciones de la práctica
   def generar_tablero_aleatorio(filas: Int, columnas: Int, colores:Set[Int]): List[List[Int]] = {
@@ -294,8 +296,8 @@ object main extends App {
     }
   }
 
-  def jugar_GUI(tablero:List[List[Int]], coords:List[Int],  vidas:Int, puntuacion:Int):List[List[Int]] ={
-    return Nil
+  def create_list(x: Integer, y:Integer):List[Int] = {
+    List(x.intValue(), y.intValue())
   }
 
   def colores_tablero(n_colores:Int):Set[Int] = {
@@ -339,7 +341,7 @@ object main extends App {
         val datos = jugar(tablero, puntuacion, vidas)
 
         if (obtener_columna(datos, 1) == 0) bucle_juego(nivel, puntuacion, 0, partidas+1)
-        else bucle_juego(nivel, obtener_columna(datos, 0), obtener_columna(datos, 1), partidas+1)
+        else bucle_juego(nivel, puntuacion+obtener_columna(datos, 0), obtener_columna(datos, 1), partidas+1)
     }
   }
 
