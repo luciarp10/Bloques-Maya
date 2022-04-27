@@ -9,6 +9,7 @@ public class Game extends JDialog {
     private JLabel puntuacionLabel;
     private JPanel mainPanel;
     private JPanel board;
+    private JLabel puntuacionTotLabel;
     private List<List<Object>> tablero;
     private int puntuacion_acumuluda = 0;
 
@@ -37,6 +38,7 @@ public class Game extends JDialog {
 
         board.removeAll();
         board.setLayout(new GridLayout(filas, columnas));
+
         this.tablero = main.generar_tablero(nivel_int);
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
@@ -55,14 +57,14 @@ public class Game extends JDialog {
                     List<Object> coords = main.create_list(fila, columna);
 
                     List<List<Object>> nuevo_tablero = main.pulsar_bloque(this.tablero, main.obtener_columna(coords,0), main.obtener_columna(coords,1));
-                    puntuacionLabel.setText(String.valueOf(main.actualizar_puntuacion(tablero, nuevo_tablero, Integer.valueOf(puntuacionLabel.getText()), coords)));
+                    puntuacionLabel.setText(String.valueOf(puntuacion_acumuluda+main.actualizar_puntuacion(tablero, nuevo_tablero, Integer.valueOf(puntuacionLabel.getText()), coords)));
                     this.tablero = main.desplazar_bloques(nuevo_tablero);
                     if (puntuacionLabel.getText().equals("0")) {
                         vidasLabel.setText(Integer.valueOf(vidasLabel.getText()) -1 + "");
                     }
 
                     if (Integer.valueOf(vidasLabel.getText()) == 0) {
-                        JOptionPane.showMessageDialog(null, "La partida ha finalizado con una puntuación de " + puntuacion_acumuluda + " puntos");
+                        JOptionPane.showMessageDialog(null, "La partida ha finalizado con una puntuación de " + puntuacionTotLabel.getText() + " puntos");
 
                         this.dispose();
                         Menu menu = new Menu();
@@ -76,6 +78,9 @@ public class Game extends JDialog {
 
                     if (main.tablero_vacio(this.tablero)) {
                         puntuacion_acumuluda += Integer.valueOf(puntuacionLabel.getText());
+                        puntuacionTotLabel.setText(Integer.parseInt(puntuacionTotLabel.getText())+puntuacion_acumuluda + "");
+                        puntuacion_acumuluda=0;
+                        puntuacionLabel.setText("0");
                         generarTablero(nivel);
                     }
                 });
@@ -135,8 +140,8 @@ public class Game extends JDialog {
     public Game(String nivel, int vidas, int puntuacion) {
         nivelLabel.setText(nivel);
         vidasLabel.setText(String.valueOf(vidas));
-        puntuacionLabel.setText(String.valueOf(puntuacion));
-
+        puntuacionLabel.setText(0 + "");
+        puntuacionTotLabel.setText(String.valueOf(puntuacion));
         setContentPane(mainPanel);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
