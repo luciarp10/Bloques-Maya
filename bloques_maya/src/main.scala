@@ -330,6 +330,10 @@ object main extends App {
       colocar_bombas(tablero, 5)
   }
 
+  def create_empty_matrix():List[List[Int]] = {
+    Nil
+  }
+
 
   def bucle_juego(nivel: Int, puntuacion:Int, vidas: Int, partidas:Int):Unit = {
     vidas match {

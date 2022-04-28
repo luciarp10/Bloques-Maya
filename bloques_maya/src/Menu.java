@@ -11,20 +11,28 @@ public class Menu extends JDialog {
         setModal(true);
 
         easyButton.addActionListener(e -> {
-            launchGame("Facil", 8, 0);
+            // Ask to the user if he wants to play with 3 lives
+            int opcion = JOptionPane.showConfirmDialog(null, "¿Quién iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
+
+            launchGame("Facil", 8, 0, opcion);
+
         });
 
         mediumButton.addActionListener(e -> {
-            launchGame("Medio", 10, 0);
+            int opcion = JOptionPane.showConfirmDialog(null, "¿Quién iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
+            launchGame("Medio", 10, 0, opcion);
         });
 
         hardButton.addActionListener(e -> {
-            launchGame("Dificil", 15, 0);
+            int opcion = JOptionPane.showConfirmDialog(null, "¿Quién iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
+            launchGame("Dificil", 15, 0, opcion);
         });
     }
 
-    private void launchGame(String dificultad, int vidas, int puntuación) {
-        Game game = new Game(dificultad, vidas, puntuación);
+    private void launchGame(String dificultad, int vidas, int puntuación, int opcion) {
+        boolean esHumano = opcion == JOptionPane.NO_OPTION;
+        System.out.println("EsHumano: " + esHumano);
+        Game game = new Game(dificultad, vidas, puntuación, esHumano);
         game.pack();
         game.setLocationRelativeTo(null);
         game.setVisible(true);

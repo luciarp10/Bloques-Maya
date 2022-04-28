@@ -2,6 +2,7 @@ import scala.collection.immutable.List;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class Game extends JDialog {
     private JLabel nivelLabel;
@@ -12,34 +13,38 @@ public class Game extends JDialog {
     private JLabel puntuacionTotLabel;
     private List<List<Object>> tablero;
     private int puntuacion_acumuluda = 0;
+    private ArrayList<JButton> botones;
+    private boolean esHumano;
 
-    private void generarTablero(String nivel) {
-        int filas = 0;
-        int columnas = 0;
-        int nivel_int = 0;
+    private int[] nivel_to_int(String nivel){
+        int[] niveles = new int[3];
 
         switch (nivel) {
             case "Facil":
-                filas = 9;
-                columnas = 11;
-                nivel_int = 1;
+                niveles = new int[]{9,11,1};
                 break;
             case "Medio":
-                filas = 12;
-                columnas = 16;
-                nivel_int = 2;
+                niveles = new int[]{12,16,2};
                 break;
             case "Dificil":
-                filas = 25;
-                columnas = 15;
-                nivel_int = 3;
+                niveles = new int[]{25,15,3};
                 break;
         }
+        return niveles;
+    }
+
+    private void generarTablero(String nivel) {
+        int[] nivel_int = nivel_to_int(nivel);
+
+        int filas = nivel_int[0];
+        int columnas = nivel_int[1];
+
+        botones = new ArrayList<>();
 
         board.removeAll();
         board.setLayout(new GridLayout(filas, columnas));
 
-        this.tablero = main.generar_tablero(nivel_int);
+        this.tablero = main.generar_tablero(nivel_int[2]);
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 JButton button = new JButton();
@@ -84,6 +89,7 @@ public class Game extends JDialog {
                         generarTablero(nivel);
                     }
                 });
+                botones.add(button);
                 board.add(button);
             }
         }
@@ -137,15 +143,65 @@ public class Game extends JDialog {
         }
     }
 
-    public Game(String nivel, int vidas, int puntuacion) {
+    private void juego_IA()
+    {
+        int filas = this.tablero.length();
+        int columnas = tablero.head().length();
+
+        while (!this.vidasLabel.getText().equals("0")) {
+            if (main.tablero_vacio(this.tablero)) {
+                continue;
+            }
+
+            // Select random button
+            int random_button;
+            int fila;
+            int columna;
+            JButton button;
+            int cont = 0;
+            do {
+                fila = (int) (Math.random() * filas);
+                columna = (int) (Math.random() * columnas);
+                random_button = fila * columnas + columna;
+                button = (JButton) board.getComponent(random_button);
+                cont ++;
+                System.out.println("Cont: " + cont);
+            } while (button.getBackground().equals(Color.BLACK) || (main.contar_iguales(this.tablero, fila, columna, main.create_empty_matrix()).length() <= 2 && cont < 100));
+
+            // Click on button
+            button.doClick();
+
+            // Wait for animation
+           /*try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }*/
+        }
+    }
+
+    public Game(String nivel, int vidas, int puntuacion, boolean esHumano) {
+        setContentPane(mainPanel);
+        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        this.esHumano = esHumano;
         nivelLabel.setText(nivel);
         vidasLabel.setText(String.valueOf(vidas));
         puntuacionLabel.setText(0 + "");
         puntuacionTotLabel.setText(String.valueOf(puntuacion));
-        setContentPane(mainPanel);
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         generarTablero(nivel);
+
+        if (!esHumano) {
+            // Juego IA en otro hilo
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    juego_IA();
+                }
+            });
+            thread.start();
+        }
     }
 
 }
