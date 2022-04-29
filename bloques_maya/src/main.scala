@@ -128,7 +128,7 @@ object main extends App {
             cambiar_estado_multipos(tablero, iguales, 0)
           }
           else {
-            println("Has pulsado un grupo de " + iguales.length + " bloques, has perdido una vida.")
+            //println("Has pulsado un grupo de " + iguales.length + " bloques, has perdido una vida.")
             cambiar_estado(tablero, fila, columna, 0)
           }
       }
@@ -242,7 +242,7 @@ object main extends App {
   def contar_iguales(tablero: List[List[Int]], fila: Int, columna: Int, elementos: List[List[Int]]): List[List[Int]] = {
     def contar_iguales_aux(tablero: List[List[Int]], fila:Int, columna:Int, inc_x: Int, inc_y: Int, elementos:List[List[Int]]): List[List[Int]] ={
       if (fila + inc_x < 0 || fila + inc_x == tablero.length || columna+inc_y < 0 || columna+inc_y == tablero.head.length) elementos
-      else if (tablero(fila+inc_x)(columna+inc_y) == tablero(fila)(columna)) contar_iguales(tablero, fila+inc_x, columna+inc_y, elementos)
+      else if (tablero(fila+inc_x)(columna+inc_y) == tablero(fila)(columna) && obtener_posicion(tablero, fila, columna)!=0) contar_iguales(tablero, fila+inc_x, columna+inc_y, elementos)
       else elementos
     }
 
@@ -349,16 +349,55 @@ object main extends App {
     }
   }
 
+  def obtener_coordenadas_bloque_IA(tablero:List[List[Int]], mejor_grupo:Int, mejor_pos:List[Int], fila:Int, columna:Int):List[Int] = {
+    if(fila == tablero.length) mejor_pos
+    else if (columna == tablero.head.length) obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila+1, 0)
+    else {
+      val vecinos = contar_iguales(tablero, fila, columna, Nil)
+      println("Mejor grupo: " + mejor_grupo + " Vecinos: " + vecinos.length)
+      if (obtener_posicion(tablero, fila, columna) != 0 && vecinos.length < mejor_grupo && vecinos.length>2){
+        println("Estoy aqui pesados")
+        obtener_coordenadas_bloque_IA(tablero, vecinos.length, List(fila, columna), fila, columna+1)
+      }
+      else obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila, columna+1)
+    }
+  }
+
+  def buscar_bomba(tablero: List[List[Int]], fila:Int, columna: Int, ultima_coord: List[Int]): List[Int] = {
+    if (fila == tablero.length) coordenada_aleatoria(tablero)
+    else if (columna == tablero.head.length) buscar_bomba(tablero, fila+1, 0, ultima_coord)
+    else {
+      if (obtener_posicion(tablero, fila, columna) == 8) List(fila, columna)
+      else buscar_bomba(tablero, fila, columna+1, ultima_coord)
+    }
+  }
+
+  def coordenada_aleatoria(tablero:List[List[Int]]): List[Int] = {
+    val fila = Random.nextInt(tablero.length)
+    val columna = Random.nextInt(tablero.head.length)
+    if (obtener_posicion(tablero, fila, columna) == 0) coordenada_aleatoria(tablero)
+    else List(fila, columna)
+  }
+
+  def pulsar_bloque_IA(tablero: List[List[Int]]):List[Int] = {
+    val coord = obtener_coordenadas_bloque_IA(tablero, tablero.length*tablero.head.length, List(0,0), 0 ,0)
+    if (contar_iguales(tablero, obtener_columna(coord, 0), obtener_columna(coord, 1), Nil).length <= 2) buscar_bomba(tablero, 0, 0, coord)
+    else coord
+  }
+
+  def lanzarIA(value: List[List[Int]], i: Int, i1: Int) = ???
+
   // Hacer menú que almacene los datos de las partidas y el tiempo jugado
   def menu():Unit = {
-    println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - Salir \nNivel:")
+    println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - IA, \n\t5 - Salir \nNivel:")
     val nivel_elegido = readLine().toInt
 
     nivel_elegido match {
       case 1 => bucle_juego(1, 0, 8, 0)
       case 2 => bucle_juego(2, 0, 10,0)
       case 3 => bucle_juego(3, 0, 15,0)
-      case 4 => println("Adios, no vuelvas.")
+      case 4 => lanzarIA(generar_tablero(1), 0, 8)
+      case 5 => println("Adios, no vuelvas.")
       case _ =>
         println("Elige un nivel válido")
         menu()

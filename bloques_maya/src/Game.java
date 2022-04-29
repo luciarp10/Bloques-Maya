@@ -154,29 +154,17 @@ public class Game extends JDialog {
             }
 
             // Select random button
-            int random_button;
-            int fila;
-            int columna;
-            JButton button;
-            int cont = 0;
-            do {
-                fila = (int) (Math.random() * filas);
-                columna = (int) (Math.random() * columnas);
-                random_button = fila * columnas + columna;
-                button = (JButton) board.getComponent(random_button);
-                cont ++;
-                System.out.println("Cont: " + cont);
-            } while (button.getBackground().equals(Color.BLACK) || (main.contar_iguales(this.tablero, fila, columna, main.create_empty_matrix()).length() <= 2 && cont < 100));
-
+            List<Object> coords = main.pulsar_bloque_IA(this.tablero);
+            JButton button = (JButton) board.getComponent((int) (main.obtener_columna(coords, 0)) * columnas + (int) main.obtener_columna(coords, 1));
             // Click on button
             button.doClick();
 
             // Wait for animation
-           /*try {
+           try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
+            }
         }
     }
 
