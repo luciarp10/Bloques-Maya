@@ -154,13 +154,13 @@ public class Game extends JDialog {
             }
 
             // Select random button
-            List<Object> coords = main.pulsar_bloque_IA(this.tablero);
+            List<Object> coords = main.mejor_coordenada(this.tablero);
             JButton button = (JButton) board.getComponent((int) (main.obtener_columna(coords, 0)) * columnas + (int) main.obtener_columna(coords, 1));
             // Click on button
             button.doClick();
 
             // Wait for animation
-           try {
+            try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();

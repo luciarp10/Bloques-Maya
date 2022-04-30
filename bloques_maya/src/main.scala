@@ -354,9 +354,7 @@ object main extends App {
     else if (columna == tablero.head.length) obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila+1, 0)
     else {
       val vecinos = contar_iguales(tablero, fila, columna, Nil)
-      println("Mejor grupo: " + mejor_grupo + " Vecinos: " + vecinos.length)
       if (obtener_posicion(tablero, fila, columna) != 0 && vecinos.length < mejor_grupo && vecinos.length>2){
-        println("Estoy aqui pesados")
         obtener_coordenadas_bloque_IA(tablero, vecinos.length, List(fila, columna), fila, columna+1)
       }
       else obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila, columna+1)
@@ -364,7 +362,10 @@ object main extends App {
   }
 
   def buscar_bomba(tablero: List[List[Int]], fila:Int, columna: Int, ultima_coord: List[Int]): List[Int] = {
-    if (fila == tablero.length) coordenada_aleatoria(tablero)
+    if (fila == tablero.length) {
+      println("No hay bombas")
+      coordenada_aleatoria(tablero)
+    }
     else if (columna == tablero.head.length) buscar_bomba(tablero, fila+1, 0, ultima_coord)
     else {
       if (obtener_posicion(tablero, fila, columna) == 8) List(fila, columna)
@@ -379,10 +380,41 @@ object main extends App {
     else List(fila, columna)
   }
 
-  def pulsar_bloque_IA(tablero: List[List[Int]]):List[Int] = {
-    val coord = obtener_coordenadas_bloque_IA(tablero, tablero.length*tablero.head.length, List(0,0), 0 ,0)
-    if (contar_iguales(tablero, obtener_columna(coord, 0), obtener_columna(coord, 1), Nil).length <= 2) buscar_bomba(tablero, 0, 0, coord)
-    else coord
+  def mejor_coordenada_actual(tablero: List[List[Int]], coords_padre:List[Int], punt_padre:Int):List[Int] = {
+    if (tablero_vacio(tablero)) coords_padre ::: List(punt_padre)
+    else{
+      val coord = obtener_coordenadas_bloque_IA(tablero, tablero.length*tablero.head.length, List(0,0), 0 ,0)
+      val punt = contar_iguales(tablero, obtener_columna(coord, 0), obtener_columna(coord, 1), Nil).length
+      if (punt <= 2) {
+        val coord2 = buscar_bomba(tablero, 0, 0, coord)
+        val punt2 = contar_iguales(tablero, obtener_columna(coord2, 0), obtener_columna(coord2, 1), Nil).length
+        if (punt2 <= 2) coord2 ::: List(0)
+        else coord2 ::: List(punt2*10+ punt_padre)
+      }
+      else coord ::: List(punt*10 + punt_padre)
+    }
+  }
+
+  def mejor_coordenada(tablero:List[List[Int]]): List[Int] = {
+    def mejor_coordenada_aux(tablero:List[List[Int]], fila: Int, columna:Int, mejor_grupo:Int, mejor_pos:List[Int]):List[Int] = {
+      if (fila == tablero.length) mejor_pos
+      else if (columna == tablero.head.length) mejor_coordenada_aux(tablero, fila+1, 0, mejor_grupo, mejor_pos)
+      else if (obtener_posicion(tablero, fila, columna) != 0) {
+        val tablero_modificado = pulsar_bloque(tablero, fila, columna)
+        val tablero_modificado1 = desplazar_bloques(tablero_modificado)
+        val puntuacion = actualizar_puntuacion(tablero, tablero_modificado, 0, List(fila,columna))
+        val coords = mejor_coordenada_actual(tablero_modificado1, List(fila, columna), puntuacion)
+        println(puntuacion, List(fila,columna), coords)
+        if (obtener_columna(coords,2) >= mejor_grupo) mejor_coordenada_aux(tablero, fila, columna+1, obtener_columna(coords,2),
+          List(fila, columna))
+        else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
+      } else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
+    }
+
+    pintar_tablero(tablero)
+    val coords = mejor_coordenada_aux(tablero, 0, 0, 0, Nil)
+    println(coords)
+    coords
   }
 
   def lanzarIA(value: List[List[Int]], i: Int, i1: Int) = ???
