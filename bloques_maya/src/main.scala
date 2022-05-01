@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.collection.parallel.immutable._
@@ -34,6 +35,7 @@ object main extends App {
   }
 
   def pintar_tablero(tablero: List[List[Int]]): Unit = {
+    @tailrec
     def pintar_fila(fila: List[Int]): Unit = {
       if (fila.isEmpty) {
         println()
@@ -43,6 +45,7 @@ object main extends App {
       }
     }
 
+    @tailrec
     def pintar_tablero_aux(tablero:List[List[Int]], fila:Int):Unit ={
       if (tablero.isEmpty) println()
       else {
@@ -79,6 +82,7 @@ object main extends App {
 
   }
 
+  @tailrec
   def obtener_columna(fila: List[Int], columna:Int): Int = {
     if (columna == 0) {
       fila.head
@@ -88,6 +92,7 @@ object main extends App {
     }
   }
 
+  @tailrec
   def obtener_posicion(tablero: List[List[Int]], fila: Int, columna: Int): Int = {
     if (fila == 0) {
       obtener_columna(tablero.head, columna)
@@ -99,21 +104,12 @@ object main extends App {
 
   def get_bloque(tablero: List[List[Int]], fila: Int, columna: Int): Char = {
     if (fila < 0 || columna < 0 || fila >= tablero.length || columna >= tablero.head.length) 0
-    else leer_estado(tablero(fila)(columna))
+    else leer_estado(obtener_posicion(tablero, fila, columna))
   }
 
-  // TODO paralelizar este metodo
   def cambiar_estado_multipos(tablero: ParVector[ParSeq[Int]], lista_pos: List[List[Int]], estado: Int): ParVector[ParSeq[Int]] = {
     tablero.zipWithIndex.map {case (fila, i) => fila.zipWithIndex.map {case (columna, j) => if (lista_pos.contains(List(i, j))) estado else columna}}
   }
-
-  /*def cambiar_estado_multipos(tablero: List[List[Int]], lista_pos: List[List[Int]], estado: Int): List[List[Int]] = {
-    if(lista_pos.isEmpty) tablero
-    else {
-      val tablero_nuevo = cambiar_estado(tablero, lista_pos.head(0), lista_pos.head(1), estado)
-      cambiar_estado_multipos(tablero_nuevo, lista_pos.tail, estado)
-    }
-  }*/
 
   def cambiar_estado(tablero: List[List[Int]], fila: Int, columna: Int, estado: Int): List[List[Int]] = {
     def cambiar_estado_fila(fila: List[Int], columna:Int,  estado: Int): List[Int] = {
@@ -130,7 +126,6 @@ object main extends App {
   def pulsar_bloque(tablero:List[List[Int]], fila:Int, columna:Int): List[List[Int]] ={
     val bloque = get_bloque(tablero, fila, columna)
     if (bloque != 0) {
-      // val nuevo_tablero = cambiar_estado(tablero, fila, columna, 0)
       bloque match {
         case 'B' =>
           explotar_bomba(tablero, fila, columna)
@@ -139,10 +134,8 @@ object main extends App {
           if (iguales.length > 2) {
             par_to_list(cambiar_estado_multipos(list_to_par(tablero), iguales, 0))
           }
-          else {
-            //println("Has pulsado un grupo de " + iguales.length + " bloques, has perdido una vida.")
+          else
             cambiar_estado(tablero, fila, columna, 0)
-          }
       }
     } else {
       println("No hay bloque en esa posicion")
@@ -156,10 +149,9 @@ object main extends App {
   }
 
   def actualizar_puntuacion(t1: List[List[Int]], t2: List[List[Int]], puntuacion:Int, bloque_pulsado: List[Int]): Int = {
-    // TODO: ZipWithIndex
     def diferencia_tableros(t1: ParVector[ParSeq[Int]], t2: List[List[Int]]): Int = {
       val cont = t1.zipWithIndex.map {case (fila, i) => fila.zipWithIndex.map{case (columna, j) => if (obtener_posicion(t2, i, j) != columna) 1 else 0}}
-      cont.flatten.sum
+      cont.flatten.sum // TODO Cambiar por método personalizado
     }
 
     val diferentes = diferencia_tableros(list_to_par(t1), t2)
@@ -169,16 +161,17 @@ object main extends App {
 
   // Función que desplaza los bloques una fila hacia abajo, si el elemento de debajo tiene estado 0
   def desplazar_bloques(tablero: List[List[Int]]):List[List[Int]] = {
+    @tailrec
     def desplazar_columna_aux(tablero: List[List[Int]], fila:Int, columna:Int, tablero_antiguo:List[List[Int]]):List[List[Int]] = {
       if (columna == tablero.head.length) desplazar_columna(tablero, tablero_antiguo)
       else if (fila == tablero.length-1) desplazar_columna_aux(tablero, 0, columna+1, tablero_antiguo)
       else {
-        val bloque_actual = tablero(fila)(columna)
-        if (tablero(fila+1)(columna) == 0)
+        val bloque_actual =  obtener_posicion(tablero, fila, columna)
+        if (obtener_posicion(tablero, fila+1, columna) == 0)
         {
-          val nuevo_tablero = cambiar_estado(tablero, fila+1, columna, bloque_actual)
-          val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila, columna, 0)
-          desplazar_columna_aux(nuevo_tablero2, fila+1, columna, nuevo_tablero)
+          val tablero_bloque_movido = cambiar_estado(tablero, fila+1, columna, bloque_actual)
+          val tablero_hueco_movido = cambiar_estado(tablero_bloque_movido, fila, columna, 0)
+          desplazar_columna_aux(tablero_hueco_movido, fila+1, columna, tablero_bloque_movido)
         }
         else desplazar_columna_aux(tablero, fila + 1, columna, tablero_antiguo)
       }
@@ -189,16 +182,18 @@ object main extends App {
       else desplazar_columna_aux(tablero, 0, 0, tablero)
     }
 
+    @tailrec
     def desplazar_fila(tablero:List[List[Int]], fila:Int, columna:Int):List[List[Int]] = {
       if (columna == tablero.head.length - 1) tablero
       else if (fila!=tablero.length && es_columna_vacia(tablero, columna)) {
-        val nuevo_tablero = cambiar_estado(tablero, fila, columna, tablero(fila)(columna + 1))
-        val nuevo_tablero2 = cambiar_estado(nuevo_tablero, fila, columna + 1, tablero(fila)(columna))
-        desplazar_fila(nuevo_tablero2, fila + 1, columna)
+        val tablero_bloque_movido = cambiar_estado(tablero, fila, columna, obtener_posicion(tablero, fila, columna+1))
+        val tablero_hueco_movido = cambiar_estado(tablero_bloque_movido, fila, columna + 1, obtener_posicion(tablero, fila, columna))
+        desplazar_fila(tablero_hueco_movido, fila + 1, columna)
       }
       else desplazar_fila(tablero,0, columna+1)
     }
 
+    @tailrec
     def es_columna_vacia(tablero: List[List[Int]], columna:Int):Boolean = {
       if (tablero.tail == Nil) tablero.head(columna) == 0
       else es_columna_vacia(tablero.tail, columna)
@@ -207,27 +202,30 @@ object main extends App {
     def desplazar_bloques_aux(tablero: List[List[Int]], fila: Int, columna: Int):List[List[Int]] = {
       if (columna == tablero(0).length) tablero
       else {
-        val tablero_modificado = desplazar_bloques_aux(tablero, fila, columna + 1)
-        val tablero_modificado2 = desplazar_columna(tablero_modificado, Nil)
-        if (es_columna_vacia(tablero_modificado2, columna)) desplazar_fila(tablero_modificado2, 0 ,columna)
-        else tablero_modificado2
+        val tablero_bajado = desplazar_bloques_aux(tablero, fila, columna + 1)
+        val tablero_desplazado = desplazar_columna(tablero_bajado, Nil)
+        if (es_columna_vacia(tablero_desplazado, columna)) desplazar_fila(tablero_desplazado, 0 ,columna)
+        else tablero_desplazado
       }
     }
     desplazar_bloques_aux(tablero,  0, 0)
   }
 
+  @tailrec
   def contiene(matriz:List[List[Int]], lista:List[Int]): Boolean ={
     if (matriz == Nil) false
     else if (matriz.tail == Nil) listas_iguales(matriz.head, lista)
     else listas_iguales(matriz.head, lista) || contiene(matriz.tail, lista)
   }
 
+  @tailrec
   def listas_iguales(l1: List[Int], l2: List[Int]): Boolean = {
     if (l1.isEmpty) l2.isEmpty
     else if (l1.head == l2.head) listas_iguales(l1.tail, l2.tail)
     else false
   }
 
+  @tailrec
   def matrices_iguales(m1:List[List[Int]], m2:List[List[Int]]): Boolean = {
     if (m1.isEmpty) m2.isEmpty
     else if (m2.isEmpty) false
@@ -238,7 +236,7 @@ object main extends App {
   def contar_iguales(tablero: List[List[Int]], fila: Int, columna: Int, elementos: List[List[Int]]): List[List[Int]] = {
     def contar_iguales_aux(tablero: List[List[Int]], fila:Int, columna:Int, inc_x: Int, inc_y: Int, elementos:List[List[Int]]): List[List[Int]] ={
       if (fila + inc_x < 0 || fila + inc_x == tablero.length || columna+inc_y < 0 || columna+inc_y == tablero.head.length) elementos
-      else if (tablero(fila+inc_x)(columna+inc_y) == tablero(fila)(columna) && obtener_posicion(tablero, fila, columna)!=0) contar_iguales(tablero, fila+inc_x, columna+inc_y, elementos)
+      else if (obtener_posicion(tablero, fila+inc_x, columna+inc_y) == obtener_posicion(tablero, fila, columna) && obtener_posicion(tablero, fila, columna)!=0) contar_iguales(tablero, fila+inc_x, columna+inc_y, elementos)
       else elementos
     }
 
@@ -273,9 +271,9 @@ object main extends App {
       pintar_tablero(tablero)
       println("Introduce la posición que quieres pulsar: x,y")
       val coord = map_to_int(readLine().split(",").toList)
-      val nuevo_tablero = pulsar_bloque(tablero, obtener_columna(coord,0), obtener_columna(coord,1))
-      val puntuacion_nueva = actualizar_puntuacion(tablero, nuevo_tablero, puntuacion, coord)
-      val tablero_desplazado = desplazar_bloques(nuevo_tablero)
+      val tablero_tras_pulsar = pulsar_bloque(tablero, obtener_columna(coord,0), obtener_columna(coord,1))
+      val puntuacion_nueva = actualizar_puntuacion(tablero,  tablero_tras_pulsar, puntuacion, coord)
+      val tablero_desplazado = desplazar_bloques( tablero_tras_pulsar)
       if (puntuacion_nueva==0) jugar(tablero_desplazado, puntuacion_nueva, vidas-1)
       else jugar(tablero_desplazado, puntuacion_nueva, vidas)
     }
@@ -297,12 +295,13 @@ object main extends App {
     else Set(1 + Random.nextInt(7)).++(colores_tablero(n_colores-1))
   }
 
+  @tailrec
   def colocar_bombas(tablero:List[List[Int]], n_bombas:Int):List[List[Int]] = {
     if (n_bombas == 0) tablero
     else {
       val fila = Random.nextInt(tablero.length)
       val columna = Random.nextInt(tablero.head.length)
-      if (tablero(fila)(columna) != 8) colocar_bombas(cambiar_estado(tablero, fila, columna, 8), n_bombas-1)
+      if (obtener_posicion(tablero, fila, columna) != 8) colocar_bombas(cambiar_estado(tablero, fila, columna, 8), n_bombas-1)
       else colocar_bombas(tablero, n_bombas)
     }
   }
@@ -329,7 +328,7 @@ object main extends App {
     Nil
   }
 
-
+  @tailrec
   def bucle_juego(nivel: Int, puntuacion:Int, vidas: Int, partidas:Int):Unit = {
     vidas match {
       case 0 =>
@@ -344,6 +343,7 @@ object main extends App {
     }
   }
 
+  @tailrec
   def obtener_coordenadas_bloque_IA(tablero:List[List[Int]], mejor_grupo:Int, mejor_pos:List[Int], fila:Int, columna:Int):List[Int] = {
     if(fila == tablero.length) mejor_pos
     else if (columna == tablero.head.length) obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila+1, 0)
@@ -356,6 +356,7 @@ object main extends App {
     }
   }
 
+  @tailrec
   def buscar_bomba(tablero: List[List[Int]], fila:Int, columna: Int, ultima_coord: List[Int]): List[Int] = {
     if (fila == tablero.length) {
       println("No hay bombas")
@@ -368,6 +369,7 @@ object main extends App {
     }
   }
 
+  @tailrec
   def coordenada_aleatoria(tablero:List[List[Int]]): List[Int] = {
     val fila = Random.nextInt(tablero.length)
     val columna = Random.nextInt(tablero.head.length)
@@ -395,10 +397,10 @@ object main extends App {
       if (fila == tablero.length) mejor_pos
       else if (columna == tablero.head.length) mejor_coordenada_aux(tablero, fila+1, 0, mejor_grupo, mejor_pos)
       else if (obtener_posicion(tablero, fila, columna) != 0) {
-        val tablero_modificado = pulsar_bloque(tablero, fila, columna)
-        val tablero_modificado1 = desplazar_bloques(tablero_modificado)
-        val puntuacion = actualizar_puntuacion(tablero, tablero_modificado, 0, List(fila,columna))
-        val coords = mejor_coordenada_actual(tablero_modificado1, List(fila, columna), puntuacion)
+        val tablero_tras_pulsar = pulsar_bloque(tablero, fila, columna)
+        val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar )
+        val puntuacion = actualizar_puntuacion(tablero, tablero_tras_pulsar , 0, List(fila,columna))
+        val coords = mejor_coordenada_actual(tablero_desplazado, List(fila, columna), puntuacion)
         if (obtener_columna(coords,2) >= mejor_grupo) mejor_coordenada_aux(tablero, fila, columna+1, obtener_columna(coords,2),
           List(fila, columna))
         else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
@@ -410,13 +412,14 @@ object main extends App {
     coords
   }
 
+  @tailrec
   def lanzarIA(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[List[Int]] ={
     val coords = mejor_coordenada(tablero)
-    val tablero_modificado = pulsar_bloque(tablero, obtener_columna(coords, 0), obtener_columna(coords, 1))
-    val tablero_modificado1 = desplazar_bloques(tablero_modificado)
-    val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_modificado, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
-    if(puntuacion_nueva == 0) lanzarIA(tablero_modificado1, puntuacion_nueva, vidas-1) // TODO: Arreglar en segunda parte
-    else lanzarIA(tablero_modificado1, puntuacion_nueva, vidas)
+    val tablero_tras_pulsar = pulsar_bloque(tablero, obtener_columna(coords, 0), obtener_columna(coords, 1))
+    val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
+    val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_tras_pulsar, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
+    if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1) // TODO: Arreglar en segunda parte
+    else lanzarIA(tablero_desplazado, puntuacion_nueva, vidas)
   }
 
   // Hacer menú que almacene los datos de las partidas y el tiempo jugado

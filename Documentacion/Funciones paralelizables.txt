@@ -3,8 +3,7 @@ Tablero aleatorio --> Se crea vacío y paralelizamos la
 
 Leer estado --> No usa listas
 
-Pintar_tablero -->  Importa el orden de imprimir así que no podemos 
-			paralelizar. 
+Pintar_tablero -->  Se puede paralelizar pero la ejecución no es paralela realmente porque para imprimir es secuencial.  
 
 Obtener_columna --> Solamente queremos una, se puede paralelizar 
 			lanzando todas las posiciones y buscando la que queremos
