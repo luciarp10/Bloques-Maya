@@ -1,3 +1,4 @@
+import scala.Int;
 import scala.collection.immutable.List;
 
 import javax.swing.*;
@@ -52,41 +53,42 @@ public class Game extends JDialog {
                 button.setBackground(get_color(main.obtener_posicion(tablero, i, j)));
                 button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 button.addActionListener(e -> {
-                    button.setBackground(Color.BLACK);
-                    button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                    if(button.getBackground() != Color.BLACK) {
+                        String[] posicion = button.getName().split("_");
+                        int fila = Integer.parseInt(posicion[1]);
+                        int columna = Integer.parseInt(posicion[2]);
 
-                    String[] posicion = button.getName().split("_");
-                    int fila = Integer.parseInt(posicion[1]);
-                    int columna = Integer.parseInt(posicion[2]);
+                        List<Object> coords = main.create_list(fila, columna);
 
-                    List<Object> coords = main.create_list(fila, columna);
+                        List<List<Object>> nuevo_tablero = main.pulsar_bloque(this.tablero, main.obtener_columna(coords, 0), main.obtener_columna(coords, 1));
+                        puntuacionLabel.setText(String.valueOf(puntuacion_acumuluda + main.actualizar_puntuacion(tablero, nuevo_tablero, Integer.valueOf(puntuacionLabel.getText()), coords)));
+                        this.tablero = main.desplazar_bloques(nuevo_tablero);
+                        if (puntuacionLabel.getText().equals("0")) {
+                            vidasLabel.setText(Integer.valueOf(vidasLabel.getText()) - 1 + "");
+                        }
 
-                    List<List<Object>> nuevo_tablero = main.pulsar_bloque(this.tablero, main.obtener_columna(coords,0), main.obtener_columna(coords,1));
-                    puntuacionLabel.setText(String.valueOf(puntuacion_acumuluda+main.actualizar_puntuacion(tablero, nuevo_tablero, Integer.valueOf(puntuacionLabel.getText()), coords)));
-                    this.tablero = main.desplazar_bloques(nuevo_tablero);
-                    if (puntuacionLabel.getText().equals("0")) {
-                        vidasLabel.setText(Integer.valueOf(vidasLabel.getText()) -1 + "");
-                    }
+                        if (Integer.valueOf(vidasLabel.getText()) == 0) {
+                            JOptionPane.showMessageDialog(null, "La partida ha finalizado con una puntuación de " + puntuacionTotLabel.getText() + " puntos");
 
-                    if (Integer.valueOf(vidasLabel.getText()) == 0) {
-                        JOptionPane.showMessageDialog(null, "La partida ha finalizado con una puntuación de " + puntuacionTotLabel.getText() + " puntos");
-
-                        this.dispose();
-                        Menu menu = new Menu();
-                        menu.pack();
-                        menu.setLocationRelativeTo(null);
-                        menu.setVisible(true);
+                            this.dispose();
+                            Menu menu = new Menu();
+                            menu.pack();
+                            menu.setLocationRelativeTo(null);
+                            menu.setVisible(true);
 
 
-                    }
-                    actualizar_tablero();
+                        }
+                        actualizar_tablero();
 
-                    if (main.tablero_vacio(this.tablero)) {
-                        puntuacion_acumuluda += Integer.valueOf(puntuacionLabel.getText());
-                        puntuacionTotLabel.setText(Integer.parseInt(puntuacionTotLabel.getText())+puntuacion_acumuluda + "");
-                        puntuacion_acumuluda=0;
-                        puntuacionLabel.setText("0");
-                        generarTablero(nivel);
+                        if (main.tablero_vacio(main.list_to_par(this.tablero))) {
+                            puntuacion_acumuluda += Integer.valueOf(puntuacionLabel.getText());
+                            puntuacionTotLabel.setText(Integer.parseInt(puntuacionTotLabel.getText()) + puntuacion_acumuluda + "");
+                            puntuacion_acumuluda = 0;
+                            puntuacionLabel.setText("0");
+                            generarTablero(nivel);
+                        }
+                    }else{
+                        JOptionPane.showMessageDialog(null, "No puedes pulsar un bloque vacío");
                     }
                 });
                 botones.add(button);
@@ -149,7 +151,7 @@ public class Game extends JDialog {
         int columnas = tablero.head().length();
 
         while (!this.vidasLabel.getText().equals("0")) {
-            if (main.tablero_vacio(this.tablero)) {
+            if (main.tablero_vacio(main.list_to_par(this.tablero))) {
                 continue;
             }
 

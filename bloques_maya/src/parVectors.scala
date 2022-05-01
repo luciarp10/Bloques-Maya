@@ -1,16 +1,8 @@
-// Tansform vector into parallel vector and add two vectors
-import scala.collection.parallel.immutable.ParVector
-import scala.collection.parallel.CollectionConverters._
 
 object parVectors extends App {
-  def map(v: ParVector[Vector[Int]], f: Int => Int): ParVector[Vector[Int]] = {
-    if (v.isEmpty) v
-    else v.head.map(f) +: map(v.tail, f)
-  }
-
-  val vector = Vector(Vector(1,2,3), Vector(4,5,6), Vector(7,8,9))
-  val parVector = vector.par
-  val parVector2 = map(parVector, (x: Int) => x + 1)
-  val vector2 = parVector2.seq
-  println(vector2)
+  // Transformar tablero paralelo en tablero secuencial
+  val p = List(List(1, 2, 3), List(4, 5, 6), List(7, 8, 9))
+  val p1 = p.map(_.par).par
+  println(p1)
+  val p2 = p1.zipWithIndex.map { case (row, i) => row.zipWithIndex.map { case (e, j) => println("Fila:"+i+" Columna:"+j+ " Valor:"+e) } }
 }
