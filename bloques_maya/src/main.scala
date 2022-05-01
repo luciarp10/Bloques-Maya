@@ -404,7 +404,6 @@ object main extends App {
         val tablero_modificado1 = desplazar_bloques(tablero_modificado)
         val puntuacion = actualizar_puntuacion(tablero, tablero_modificado, 0, List(fila,columna))
         val coords = mejor_coordenada_actual(tablero_modificado1, List(fila, columna), puntuacion)
-        println(puntuacion, List(fila,columna), coords)
         if (obtener_columna(coords,2) >= mejor_grupo) mejor_coordenada_aux(tablero, fila, columna+1, obtener_columna(coords,2),
           List(fila, columna))
         else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
@@ -413,11 +412,17 @@ object main extends App {
 
     pintar_tablero(tablero)
     val coords = mejor_coordenada_aux(tablero, 0, 0, 0, Nil)
-    println(coords)
     coords
   }
 
-  def lanzarIA(value: List[List[Int]], i: Int, i1: Int) = ???
+  def lanzarIA(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[List[Int]] ={
+    val coords = mejor_coordenada(tablero)
+    val tablero_modificado = pulsar_bloque(tablero, obtener_columna(coords, 0), obtener_columna(coords, 1))
+    val tablero_modificado1 = desplazar_bloques(tablero_modificado)
+    val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_modificado, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
+    if(puntuacion_nueva == 0) lanzarIA(tablero_modificado1, puntuacion_nueva, vidas-1)
+    else lanzarIA(tablero_modificado1, puntuacion_nueva, vidas)
+  }
 
   // Hacer menú que almacene los datos de las partidas y el tiempo jugado
   def menu():Unit = {
