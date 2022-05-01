@@ -1,0 +1,74 @@
+Tablero aleatorio --> Se crea vacío y paralelizamos la 
+		generación aleatoria elemento a elemento.
+
+Leer estado --> No usa listas
+
+Pintar_tablero -->  Importa el orden de imprimir así que no podemos 
+			paralelizar. 
+
+Obtener_columna --> Solamente queremos una, se puede paralelizar 
+			lanzando todas las posiciones y buscando la que queremos
+			pero el coste es demasiado alto para el beneficio que 
+			obtenemos. 
+
+Cambiar_estado_multipos --> Se puede hacer, es cambiar el estado de varias posiciones. Cada hilo
+				cambia una. 
+
+Cambiar_estado --> Ocurre lo mismo que con obtener columna, los beneficios no parecen relevantes. 
+
+Pulsar_bloque --> No se puede paralelizar porque depende de cada turno de juego. No tiene sentido hacerlo
+		en paralelo porque se perdería el orden. 
+
+Tablero_vacío --> Tiene bastante sentido hacerlo en paralelo porque es comprobar cada posición 
+		del tablero. Además no lo vamos a modificar. 
+
+Actualizar_puntuación --> No es paralelizable porque se lanza una vez y necesitas las diferencias totales, 
+			por eso diferencia tablero sí que se puede paralelizar. 
+
+Diferencia_tablero --> Se puede paralelizar porque es comprobar en cada posición del viejo y el nuevo
+			si son diferentes. Cada hilo devuelve 1 o 0. 
+
+Desplazar_bloques --> No lo podemos paralelizar porque la posición de cada bloque depende de la de los demás bloques.
+			Se podría paralelizar pero recorriendo varias veces el tablero, lo cual no tiene mucho sentido.
+
+es_columna_vacía --> No lo paralelizamos porque solo miramos uan posición para comprobarlo. Se podría si recorriésemos la columna entera. 
+			Es por nuestra forma de programarlo. 
+
+contiene --> Sí se puede paralelizar. Para cada elemento de la lista, buscarlo en la matriz o al revés. 
+
+listas_iguales --> Se podría paralelizar también. 
+
+matrices_iguales --> Misma idea, se puede. 
+
+contar_iguales --> No se puede paralelizar, se podría pero no tiene sentido porque necesitamos saber si estamos conectados con el inicio e ir sumando
+			si seguimos siendo iguales. 
+
+Explotar_bomba --> Sí, se lanzan los 9 hilos que cambian el estado de las filas de alrededor. 
+
+Map_to_int --> Se puede paralelizar. 
+
+Jugar --> Evidentemente, no
+
+Colores_tablero --> Se puede paralelizar. 
+
+Colocar_bombas --> podemos lanzar un hilo por bomba y que ese hilo elija la posición. No sabemos si tiene mucho sentido 
+		pero se puede. 
+Generar_tablero --> no porque solo lanza la generación de tablero en función del nivel con un número de filas y columnas. Ya paralelizamos la que lo genera como tal. 
+
+Create_empty_matriz --> no
+
+Bucle_juego --> NO porque necesitamos el orden de los tableros o perderíamos la consistencia de la partida. 
+
+Obtener_coordenadas_bloque_IA --> Se puede y debe paralelizar porque cada posición del tablero real simula la situación de un tablero futuro. 
+
+Buscar_bomba --> Se puede, mirando todas las posiciones del tablero de forma paralela. 
+
+coordenada_aleatoria --> no, se hace solo una vez. 
+
+Mejor_coordenada_actual --> Ya hemos paralelizado obtener_coordenadas_bloque_IA que es la que utiliza esta función. 
+
+mejor_coordenada --> Sí se puede paralelizar, cada celda se pulsa a sí misma y lanza otro proceso. 
+
+lanzar_IA --> No 
+
+menú --> tampoco 
