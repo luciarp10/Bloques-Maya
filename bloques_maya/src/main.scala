@@ -768,7 +768,6 @@ object main extends App {
    * Menu que se muestra por terminal para seleccionar el nivel de juego o jugar con la inteligencia artificial.
    */
   @tailrec
-  // Hacer menú que almacene los datos de las partidas y el tiempo jugado
   def menu():Unit = {
     println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - IA, \n\t5 - Salir \nNivel:")
     val nivel_elegido = readLine().toInt
