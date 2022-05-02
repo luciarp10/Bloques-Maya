@@ -205,7 +205,7 @@ object main extends App {
         case _ => // Si no
           val iguales = contar_iguales(tablero, fila, columna, Nil) // Contamos sus bloques vecinos iguales a el
           if (iguales.length > 2) { // Si se forma un grupo de 3 o más bloques iguales
-            cambiar_estado_multipos(tablero, iguales, 0) // Eliminamos de forma concurrente todos los bloques del grupo
+            cambiar_estado_multipos(tablero, iguales, 0) // Eliminamos todos los bloques del grupo
           }
           else cambiar_estado(tablero, fila, columna, 0) // Eliminamos el bloque pulsado
       }
@@ -217,8 +217,8 @@ object main extends App {
   }
 
   /**
-   * Comprueba si un tablero está vacío concurrentemente (Cada casilla se comprueba en paralelo).
-   * @param tablero Matriz concurrente de enteros a comprobar.
+   * Comprueba si un tablero está vacío recursivamente.
+   * @param tablero Matriz de enteros a comprobar.
    * @return True si todas las posiciones son 0, false en caso contrario.
    */
   def tablero_vacio(tablero: List[List[Int]]): Boolean = {
@@ -575,6 +575,9 @@ object main extends App {
     }
   }
 
+  /* *************************************************************************************
+   *                                      LÓGICA IA                                      *
+   ***************************************************************************************/
 
   /**
    * Obtiene la mejor coordenada buscando los grupos más pequeños mayores o iguales que 3.
@@ -655,7 +658,7 @@ object main extends App {
   }
 
   /**
-   * Recibe el tablero y lo recorre de forma concurrente para obtener el resultado de pulsar cada una de las posiciones disponibles.
+   * Recibe el tablero y lo recorre de forma recursiva para obtener el resultado de pulsar cada una de las posiciones disponibles.
    * Devuelve la mejor coordenada y su puntuacion.
    * @param tablero tablero actual
    * @return Mejor coordenada encontrada

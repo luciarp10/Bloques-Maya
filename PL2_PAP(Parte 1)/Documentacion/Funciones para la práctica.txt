@@ -1,0 +1,69 @@
+Funciones: 
+	contar_alrededor.
+		input: coorx, coory, tablero
+		output: lista_alrededor_iguales
+		//Si length(lista_alrededor_iguales)<2 llamar a quitar vida, a poner a 0 la puntuación y eliminamos solo el bloque seleccionado
+	
+	borrar_iguales. 
+		input: coorx, coory, tablero 
+		output: tablero_borrado
+	
+	descender_bloques: 
+		input: tablero_borrado
+		output: tablero_turno_siguiente
+
+	get_bloque:	
+		input: coorx, coory, tablero
+		output: letra
+
+	desplazar_izq:
+		input: tablero
+		output: tablero_desplazado
+
+	quitar_vida: 
+		input: vidas_actuales
+		output: vidas_actuales-1
+
+	generar_tablero_aleatorio:
+		input: filas, columnas, lista_fichas_posibles
+		output: tablero
+
+	sumar_puntos: 
+		input: puntos_actuales, bloques_eliminados
+		output: puntos_actuales + bloques_eliminados*10
+	
+	puntos_a_cero: 
+		input: puntos_actuales
+		output: puntos_actuales=0
+
+	es_columna_vacia: 
+		input: coorx
+		output: true/false
+	
+	cambiar_estado:
+		input: coorx, coory, estado, tablero
+		output: tablero_modificado
+	
+	explotar_bombas:
+		input: coorx, coory, tablero
+		output: tablero_modifcado
+		
+	obtener_bloques_vecinos:
+		input: coorx, coory, tablero
+		output: lista_vecinos
+		
+	pulsar_bloque:
+		input: coorx, coory, tablero
+		output: tablero
+		
+	pintar_tablero:
+		input: tablero
+		output: tablero por pantalla
+	
+	pintar_fila:
+		input: lista
+		output: fila por pantalla
+
+	leer_estado:
+		input: estado
+		output: letra
