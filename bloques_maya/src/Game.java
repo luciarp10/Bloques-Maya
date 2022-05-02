@@ -109,13 +109,16 @@ public class Game extends JDialog {
         // Cadena genérica al terminar el juego
         String msg = "La partida ha finalizado con una puntuación de " + puntuacionTotLabel.getText() + " puntos en " + partidasLabel.getText() + " partidas.";
         // Configuramos el título en función de la causa de la derrota
-        if (Integer.parseInt(vidasLabel.getText()) == 0)
+        if (Integer.parseInt(vidasLabel.getText()) < 1)
             titulo = "Has perdido todas tus vidas";
         else if (tiempoLabel.getText().equals("00:00"))
             titulo = "Se acabó el tiempo";
 
         // Si hay alguna causa de derrota, mostramos el mensaje y terminamos el juego
-        if (!titulo.equals("") && !terminado) {
+        if (!titulo.isEmpty() && !terminado) {
+            // Cerrojo que impide que se intente cerrar la venta más de una vez
+            terminado = true;
+
             JOptionPane.showMessageDialog(null, msg, titulo, JOptionPane.INFORMATION_MESSAGE);
 
             // Cerramos la ventana actual y volvemos a abrir el menú.
@@ -126,9 +129,6 @@ public class Game extends JDialog {
             menu.pack();
             menu.setLocationRelativeTo(null);
             menu.setVisible(true);
-
-            // Cerrojo que impide que se intente cerrar la venta más de una vez
-            terminado = true;
         }
     }
 
@@ -184,6 +184,8 @@ public class Game extends JDialog {
             vidasLabel.setText(Integer.valueOf(vidasLabel.getText()) - 1 + "");
         }
 
+
+        comprobarDerrota();
         // Cambiamos el background de los botones en función del nuevo tablero
         actualizar_tablero();
         // Comprobamos si el tablero se ha vaciado
