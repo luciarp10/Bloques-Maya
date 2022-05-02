@@ -289,7 +289,7 @@ object main extends App {
      */
     def diferencia_tableros(t1: ParVector[ParSeq[Int]], t2: List[List[Int]]): Int = {
       val cont = t1.zipWithIndex.map {case (fila, i) => fila.zipWithIndex.map{case (columna, j) => if (obtener_posicion(t2, i, j) != columna) 1 else 0}}
-      cont.flatten.sum // TODO Cambiar por método personalizado
+      cont.flatten.sum
     }
 
     val diferentes = diferencia_tableros(list_to_par(t1), t2) // Obtenemos las diferencias entre tableros
@@ -759,7 +759,7 @@ object main extends App {
       val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
       val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_tras_pulsar, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
       pintar_tablero(tablero_desplazado)
-      if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1, nivel, partidas) // TODO: Arreglar en segunda parte
+      if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1, nivel, partidas)
       else lanzarIA(tablero_desplazado, puntuacion_nueva, vidas, nivel, partidas)
     }
   }

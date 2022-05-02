@@ -712,7 +712,7 @@ object main extends App {
       val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
       val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_tras_pulsar, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
       pintar_tablero(tablero_desplazado)
-      if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1, nivel, partidas) // TODO: Arreglar en segunda parte
+      if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1, nivel, partidas)
       else lanzarIA(tablero_desplazado, puntuacion_nueva, vidas, nivel, partidas)
     }
   }
