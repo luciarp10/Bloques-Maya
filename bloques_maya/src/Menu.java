@@ -1,50 +1,65 @@
 import javax.swing.*;
 
 public class Menu extends JDialog {
+    // Componentes de swing
     private JButton mediumButton;
     private JButton hardButton;
     private JPanel mainPanel;
     private JButton easyButton;
 
+    /**
+     * Constructor de la clase, inicializa los componentes y asigna listeners a los botones
+     */
     public Menu() {
+        // Inicialización de los componentes
         setContentPane(mainPanel);
         setModal(true);
 
-        easyButton.addActionListener(e -> {
-            // Ask to the user if he wants to play with 3 lives
-            int opcion = JOptionPane.showConfirmDialog(null, "¿Quieres iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
-
-            launchGame("Facil", 8, 0, opcion);
-
+        // Asignamos listeners a los botones
+        easyButton.addActionListener(e -> { // Si se pulsa el botón de facil
+            lanzarJuego("Facil", "2:0"); // Lanzamos el juego con dificultad facil y con 2 minutos de tiempo
         });
 
-        mediumButton.addActionListener(e -> {
-            int opcion = JOptionPane.showConfirmDialog(null, "¿Quieres iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
-            launchGame("Medio", 10, 0, opcion);
+        mediumButton.addActionListener(e -> { // Si se pulsa el botón de medio
+            lanzarJuego("Medio", "5:0"); // Lanzamos el juego con dificultad media y con 5 minutos de tiempo
         });
 
-        hardButton.addActionListener(e -> {
-            int opcion = JOptionPane.showConfirmDialog(null, "¿Quieres iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
-            launchGame("Dificil", 15, 0, opcion);
+        hardButton.addActionListener(e -> { // Si se pulsa el botón de dificil
+            lanzarJuego("Dificil", "10:0"); // Lanzamos el juego con dificultad dificil y con 10 minutos de tiempo
         });
     }
 
-    private void launchGame(String dificultad, int vidas, int puntuación, int opcion) {
+    /**
+     * Abre un JDialog Game con la dificultad y tiempo indicados.
+     * @param dificultad Dificultad del juego {Fácil, Medio, Dificil}
+     * @param tiempo Tiempo del juego {mm:ss}
+     */
+    private void lanzarJuego(String dificultad, String tiempo) {
+        // Preguntamos al usuario si quiere jugar o prefiere que juegue la IA
+        int opcion = JOptionPane.showConfirmDialog(null, "¿Quieres iniciar una simulación?", "Jugador", JOptionPane.YES_NO_OPTION);
+        // En función de la opción, lanzamos el juego o la IA
         boolean esHumano = opcion == JOptionPane.NO_OPTION;
-        System.out.println("EsHumano: " + esHumano);
-        Game game = new Game(dificultad, vidas, puntuación, esHumano);
+
+        // Creamos el juego con la dificultad, el tiempo y el modo indicados
+        Game game = new Game(dificultad, tiempo, esHumano);
+        // Mostramos el juego
         game.pack();
         game.setLocationRelativeTo(null);
         game.setVisible(true);
+        // Cerramos el menú
         this.dispose();
     }
 
+    /**
+     * main de la clase, crea un menú y lo muestra
+     * @param args Argumentos de la línea de comandos
+     */
     public static void main(String[] args) {
+        // Creamos el menú
         Menu dialog = new Menu();
+        // Mostramos el menú
         dialog.pack();
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
-
-
 }

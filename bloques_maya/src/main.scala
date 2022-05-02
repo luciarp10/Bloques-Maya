@@ -1,27 +1,74 @@
 import scala.annotation.tailrec
+import scala.collection.GenSeq
 import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.collection.parallel.immutable._
 
 object main extends App {
+  /* *************************************************************************************
+   *                            COLECCIONES PARALELAS                                    *
+   ***************************************************************************************/
+
+  /**
+   * Transforma una matriz de enteros en una matriz paralela de entero
+   * @param list matriz secuencial de enteros
+   * @return matriz paralela de enteros
+   */
   def list_to_par(list: List[List[Int]]): ParVector[ParSeq[Int]] = {
-    if (list.isEmpty) {
-      ParVector()
-    } else
-      ParVector(list.head.par) ++ list_to_par(list.tail)
+    if (list.isEmpty) ParVector()
+    else ParVector(list.head.par) ++ list_to_par(list.tail) // Para cada elemento de la lista, se crea un vector paralelo
   }
 
-  def par_to_list(par: ParVector[ParSeq[Int]]): List[List[Int]] = {
-    if (par.isEmpty) {
-      List()
-    } else
-      par.head.seq.toList :: par_to_list(par.tail)
+  /**
+   * Transforma una matriz de enteros en una matriz paralela de enteros
+   * @param par matriz paralela de enteros
+   * @return matriz secuencial de enteros
+   */
+  def par_to_list(par: ParVector[GenSeq[Int]]): List[List[Int]] = {
+    if (par.isEmpty) Nil
+    else par.head.toList :: par_to_list(par.tail) // Para cada elemento del vector, se crea una lista secuencial
   }
 
+  /**
+   * Transforma una matriz de GenSeq[Int] paralela en un ParVector[GenSeq[Int]] (Aplanamos la matriz)
+   * @param par matriz paralela a aplanar
+   * @return matriz aplanada
+   */
+  def aplanar(par: ParVector[ParSeq[GenSeq[Int]]]): ParVector[GenSeq[Int]] = {
+    /**
+     * Funcion auxiliar para aplanar. Transforma un ParSeq a un ParVector
+     * @param par ParSeq a transformar
+     * @return ParVector transformado
+     */
+    def parseq_to_vector(par: ParSeq[GenSeq[Int]]): ParVector[GenSeq[Int]] = {
+      if (par.isEmpty) ParVector()
+      else ParVector(par.head) ++ parseq_to_vector(par.tail) // Para cada elemento de la secuencia, se crea un vector paralelo
+    }
+
+    if (par.isEmpty) ParVector()
+    else parseq_to_vector(par.head) ++ aplanar(par.tail) // Para cada fila de la matriz, se crea un vector paralelo
+  }
+
+  /* *************************************************************************************
+   *                               LÓGICA OBLIGATORIA                                    *
+   ***************************************************************************************/
+
+  /**
+   * Rellena un tablero vacío con estados aleatorios contenidos en <i>colores</i>.
+   * @param tablero_vacio Tablero vacío a rellenar
+   * @param colores Set de colores a usar
+   * @return Tablero rellenado con estados aleatorios
+   */
   def generar_tablero_aleatorio(tablero_vacio: ParVector[ParSeq[Int]], colores:Set[Int]): ParVector[ParSeq[Int]] = {
-    tablero_vacio.map(fila => fila.map(columna => Random.shuffle(colores).head))
+    // Cada elemento de la matriz elige un color aleatorio concurrentemente
+    tablero_vacio.map(fila => fila.map(_ => Random.shuffle(colores).head)) // Random.shuffle mezcla el set de colores aleatoriamente
   }
 
+  /**
+   * Método match que traduce un estado numérico a la inicial del color correspondiente.
+   * @param n Estado de una celda
+   * @return Color correspondiente al estado
+   */
   def leer_estado(n: Int): Char = n match {
     case 0 => ' '
     case 1 => 'A'
@@ -34,6 +81,10 @@ object main extends App {
     case 8 => 'B'
   }
 
+  /**
+   * Pinta el tablero en la salida estándar.
+   * @param tablero Tablero con estados numéricos.
+   */
   def pintar_tablero(tablero: List[List[Int]]): Unit = {
     @tailrec
     def pintar_fila(fila: List[Int]): Unit = {
@@ -55,6 +106,7 @@ object main extends App {
       }
     }
 
+    @tailrec
     def pintar_indices(i: Int, f: Int): Unit = {
       if (i == f) {
         println()
@@ -64,8 +116,8 @@ object main extends App {
       }
     }
 
-    def pintar_char
-    (n:Int, c:Char):Unit = {
+    @tailrec
+    def pintar_char(n:Int, c:Char):Unit = {
       if (n == 0) {
         println()
       } else {
@@ -81,6 +133,7 @@ object main extends App {
     pintar_tablero_aux(tablero, 0)
 
   }
+
 
   @tailrec
   def obtener_columna(fila: List[Int], columna:Int): Int = {
@@ -200,7 +253,7 @@ object main extends App {
     }
 
     def desplazar_bloques_aux(tablero: List[List[Int]], fila: Int, columna: Int):List[List[Int]] = {
-      if (columna == tablero(0).length) tablero
+      if (columna == tablero.head.length) tablero
       else {
         val tablero_bajado = desplazar_bloques_aux(tablero, fila, columna + 1)
         val tablero_desplazado = desplazar_columna(tablero_bajado, Nil)
@@ -265,6 +318,7 @@ object main extends App {
     else list.head.toInt :: map_to_int(list.tail)
   }
 
+  @tailrec
   def jugar(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[Int] = {
     if (!tablero_vacio(list_to_par(tablero)) && vidas > 0) {
       println("Nuevo turno: Vidas: " + vidas + " Puntuacion: " + puntuacion)
@@ -343,7 +397,7 @@ object main extends App {
     }
   }
 
-  @tailrec
+  /*@tailrec
   def obtener_coordenadas_bloque_IA(tablero:List[List[Int]], mejor_grupo:Int, mejor_pos:List[Int], fila:Int, columna:Int):List[Int] = {
     if(fila == tablero.length) mejor_pos
     else if (columna == tablero.head.length) obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila+1, 0)
@@ -354,18 +408,50 @@ object main extends App {
       }
       else obtener_coordenadas_bloque_IA(tablero, mejor_grupo, mejor_pos, fila, columna+1)
     }
+  }*/
+
+  @tailrec
+  def buscar_mejor_posicion(posiciones:List[List[Int]], mejor_grupo:Int, mejor_pos: List[Int], f: (Int,Int) => Boolean): List[Int] = {
+    if (posiciones.isEmpty) mejor_pos
+    else {
+      val vecinos = obtener_columna(posiciones.head, 2)
+      if (f(vecinos, mejor_grupo)) buscar_mejor_posicion(posiciones.tail, vecinos, posiciones.head, f)
+      else buscar_mejor_posicion(posiciones.tail, mejor_grupo, mejor_pos, f)
+    }
+  }
+
+
+
+  def obtener_coordenadas_bloque_IA(tablero: ParVector[ParSeq[Int]]): List[Int] = {
+    val posiciones_par = tablero.zipWithIndex.map {
+      case(fila,i) => fila.zipWithIndex.map {
+      case (_, j) =>
+        val vecinos = contar_iguales(par_to_list(tablero), i, j, Nil)
+        if (obtener_posicion(par_to_list(tablero), i, j) != 0 && vecinos.length > 2) List(i, j, vecinos.length)
+        else Nil
+      }}
+
+    // Transformar parvector a lista
+    val posiciones_ = par_to_list(aplanar(posiciones_par))
+
+    // Filtrar posiciones que no sean nulas
+    val posiciones_filtradas = posiciones_.filter(x => x != Nil)
+    val posiciones = posiciones_filtradas
+    //println(posiciones)
+
+    if (posiciones.isEmpty)
+      List(0,0,-1)
+    else
+      buscar_mejor_posicion(posiciones, tablero.length*tablero.head.length, posiciones.head, (a,b) => a > b)
   }
 
   @tailrec
-  def buscar_bomba(tablero: List[List[Int]], fila:Int, columna: Int, ultima_coord: List[Int]): List[Int] = {
-    if (fila == tablero.length) {
-      println("No hay bombas")
-      coordenada_aleatoria(tablero)
-    }
-    else if (columna == tablero.head.length) buscar_bomba(tablero, fila+1, 0, ultima_coord)
+  def buscar_bomba(tablero: List[List[Int]], fila:Int, columna: Int): List[Int] = {
+    if (fila == tablero.length) coordenada_aleatoria(tablero)
+    else if (columna == tablero.head.length) buscar_bomba(tablero, fila+1, 0)
     else {
       if (obtener_posicion(tablero, fila, columna) == 8) List(fila, columna)
-      else buscar_bomba(tablero, fila, columna+1, ultima_coord)
+      else buscar_bomba(tablero, fila, columna+1)
     }
   }
 
@@ -380,48 +466,80 @@ object main extends App {
   def mejor_coordenada_actual(tablero: List[List[Int]], coords_padre:List[Int], punt_padre:Int):List[Int] = {
     if (tablero_vacio(list_to_par(tablero))) coords_padre ::: List(punt_padre)
     else{
-      val coord = obtener_coordenadas_bloque_IA(tablero, tablero.length*tablero.head.length, List(0,0), 0 ,0)
-      val punt = contar_iguales(tablero, obtener_columna(coord, 0), obtener_columna(coord, 1), Nil).length
+      //val coord = obtener_coordenadas_bloque_IA(tablero, tablero.length*tablero.head.length, List(0,0), 0 ,0)
+      val coord = obtener_coordenadas_bloque_IA(list_to_par(tablero))
+      val punt = obtener_columna(coord, 2)
       if (punt <= 2) {
-        val coord2 = buscar_bomba(tablero, 0, 0, coord)
+        val coord2 = buscar_bomba(tablero, 0, 0)
         val punt2 = contar_iguales(tablero, obtener_columna(coord2, 0), obtener_columna(coord2, 1), Nil).length
+
         if (punt2 <= 2) coord2 ::: List(0)
         else coord2 ::: List(punt2*10+ punt_padre)
       }
-      else coord ::: List(punt*10 + punt_padre)
+      else {
+        List(obtener_columna(coord, 0), obtener_columna(coord, 1), punt*10+ punt_padre)
+      }
     }
   }
 
   def mejor_coordenada(tablero:List[List[Int]]): List[Int] = {
-    def mejor_coordenada_aux(tablero:List[List[Int]], fila: Int, columna:Int, mejor_grupo:Int, mejor_pos:List[Int]):List[Int] = {
+    /*def mejor_coordenada_aux(tablero:List[List[Int]], fila: Int, columna:Int, mejor_grupo:Int, mejor_pos:List[Int]):List[Int] = {
       if (fila == tablero.length) mejor_pos
       else if (columna == tablero.head.length) mejor_coordenada_aux(tablero, fila+1, 0, mejor_grupo, mejor_pos)
       else if (obtener_posicion(tablero, fila, columna) != 0) {
         val tablero_tras_pulsar = pulsar_bloque(tablero, fila, columna)
-        val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar )
+        val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
         val puntuacion = actualizar_puntuacion(tablero, tablero_tras_pulsar , 0, List(fila,columna))
         val coords = mejor_coordenada_actual(tablero_desplazado, List(fila, columna), puntuacion)
+        println(coords)
         if (obtener_columna(coords,2) >= mejor_grupo) mejor_coordenada_aux(tablero, fila, columna+1, obtener_columna(coords,2),
           List(fila, columna))
         else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
       } else mejor_coordenada_aux(tablero, fila, columna+1, mejor_grupo, mejor_pos)
-    }
+    }*/
 
-    pintar_tablero(tablero)
-    val coords = mejor_coordenada_aux(tablero, 0, 0, 0, Nil)
+    def mejor_coordenada_aux(tablero: ParVector[ParSeq[Int]]): List[Int] = {
+      val posiciones_par = tablero.zipWithIndex.map { case (fila, i) => fila.zipWithIndex.map{ case (_, j) =>
+        if (obtener_posicion(par_to_list(tablero), i, j) == 0) List(0,0,-1)
+        else {
+          val tablero_tras_pulsar = pulsar_bloque(par_to_list(tablero), i, j)
+          val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
+          val puntuacion = actualizar_puntuacion(par_to_list(tablero), tablero_tras_pulsar , 0, List(i,j))
+          val coords = mejor_coordenada_actual(tablero_desplazado, List(i, j), puntuacion)
+          //println(coords)
+          if (obtener_columna(coords,2) > 0) List(i,j, obtener_columna(coords,2))
+          else List(0,0,-1)
+        }
+      }}
+
+      val posiciones_filtradas = par_to_list(aplanar(posiciones_par))
+      //println(posiciones_filtradas)
+      buscar_mejor_posicion(posiciones_filtradas, -1, List(0,0,-1), (a,b) => a > b)
+    }
+    val coords = mejor_coordenada_aux(list_to_par(tablero))
     coords
   }
 
   @tailrec
-  def lanzarIA(tablero: List[List[Int]], puntuacion: Int, vidas: Int):List[List[Int]] ={
-    val coords = mejor_coordenada(tablero)
-    val tablero_tras_pulsar = pulsar_bloque(tablero, obtener_columna(coords, 0), obtener_columna(coords, 1))
-    val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
-    val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_tras_pulsar, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
-    if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1) // TODO: Arreglar en segunda parte
-    else lanzarIA(tablero_desplazado, puntuacion_nueva, vidas)
+  def lanzarIA(tablero: List[List[Int]], puntuacion: Int, vidas: Int, nivel:Int, partidas:Int):List[List[Int]] ={
+    if (vidas == 0) {
+      println("Partida finalizada con "+ puntuacion+ " puntos en "+partidas+" partidas.")
+      tablero
+    }else if (tablero_vacio(list_to_par(tablero))){
+      lanzarIA(generar_tablero(nivel), puntuacion, 8, nivel, partidas+1)
+    } else{
+      println("Puntuacion: "+puntuacion+" Vidas: "+vidas)
+      val coords = mejor_coordenada(tablero)
+      val tablero_tras_pulsar = pulsar_bloque(tablero, obtener_columna(coords, 0), obtener_columna(coords, 1))
+      val tablero_desplazado = desplazar_bloques(tablero_tras_pulsar)
+      val puntuacion_nueva = actualizar_puntuacion(tablero, tablero_tras_pulsar, puntuacion, List(obtener_columna(coords, 0), obtener_columna(coords, 1)))
+      pintar_tablero(tablero_desplazado)
+      if(puntuacion_nueva == 0) lanzarIA(tablero_desplazado, puntuacion_nueva, vidas-1, nivel, partidas) // TODO: Arreglar en segunda parte
+      else lanzarIA(tablero_desplazado, puntuacion_nueva, vidas, nivel, partidas)
+    }
   }
 
+  @tailrec
   // Hacer menú que almacene los datos de las partidas y el tiempo jugado
   def menu():Unit = {
     println("Elige el nivel que quieres jugar: \n\t1 - Facil, \n\t2 - Medio, \n\t3 - Dificil, \n\t4 - IA, \n\t5 - Salir \nNivel:")
@@ -431,7 +549,7 @@ object main extends App {
       case 1 => bucle_juego(1, 0, 8, 0)
       case 2 => bucle_juego(2, 0, 10,0)
       case 3 => bucle_juego(3, 0, 15,0)
-      case 4 => lanzarIA(generar_tablero(1), 0, 8)
+      case 4 => lanzarIA(generar_tablero(1), 0, 8, 1, 0)
       case 5 => println("Adios, no vuelvas.")
       case _ =>
         println("Elige un nivel válido")
