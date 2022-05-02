@@ -1,2 +1,18 @@
 
 *.class
+*.html
+*.css
+bloques_maya/Docs/javadoc/element-list
+bloques_maya/Docs/javadoc/legal/ADDITIONAL_LICENSE_INFO
+bloques_maya/Docs/javadoc/legal/ASSEMBLY_EXCEPTION
+*.md
+*.js
+*.png
+*.svg
+*.eot
+*.ttf
+*.woff
+*.gif
+PL2_PAP(Parte 2)/Docs/javadoc/legal/ADDITIONAL_LICENSE_INFO
+PL2_PAP(Parte 2)/Docs/javadoc/legal/ASSEMBLY_EXCEPTION
+PL2_PAP(Parte 2)/Docs/javadoc/legal/LICENSE
