@@ -777,8 +777,7 @@ object main extends App {
       case 1 => bucle_juego(1, 0, 8, 0)
       case 2 => bucle_juego(2, 0, 10,0)
       case 3 => bucle_juego(3, 0, 15,0)
-      case 4 => lanzarIA(generar_tablero(1), 0, 8, 1, 0)
-      case 5 => println("Adios, no vuelvas.")
+      case 5 => println("Salir.")
       case _ =>
         println("Elige un nivel válido")
         menu()
