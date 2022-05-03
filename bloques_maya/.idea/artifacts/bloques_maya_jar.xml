@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="bloques_maya:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/bloques_maya_jar</output-path>
+    <root id="archive" name="bloques_maya.jar">
+      <element id="module-output" name="bloques_maya" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.12.14.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.12.14.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-xml_2.12/bundles/scala-xml_2.12-1.0.6.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

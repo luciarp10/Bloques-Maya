@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/PL2_PAP.iml" filepath="$PROJECT_DIR$/.idea/PL2_PAP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PL2_PAP(Parte 2)/PL2_PAP(Parte 2).iml" filepath="$PROJECT_DIR$/PL2_PAP(Parte 2)/PL2_PAP(Parte 2).iml" />
+      <module fileurl="file://$PROJECT_DIR$/bloques_maya/bloques_maya.iml" filepath="$PROJECT_DIR$/bloques_maya/bloques_maya.iml" />
+    </modules>
+  </component>
+</project>
