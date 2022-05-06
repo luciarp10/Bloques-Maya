@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.Buffer;
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 public class Game extends JDialog {
     // Elementos de JDialog
@@ -30,6 +31,8 @@ public class Game extends JDialog {
 
     // Estados de juego
     private boolean terminado = false;
+    private Semaphore semaforo_IA;
+    private Semaphore semaforo_relleno;
 
     /**
      * Constructor del JDialog, inicializa los componentes, hilos y los atributos.
@@ -48,6 +51,9 @@ public class Game extends JDialog {
                 terminarHilos();
             }
         });
+
+        semaforo_IA = new Semaphore(1);
+        semaforo_relleno = new Semaphore(1);
 
         // Inicializamos los atributos en función de los parámetros
         nivelLabel.setText(nivel);
@@ -81,18 +87,43 @@ public class Game extends JDialog {
             while (!terminado) { // Mientras el juego no haya terminado
                 // Actualizamos el tiempo cada vez que pasa un segundo y comprobamos que no hemos perdido
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     break;
                 }
                 actualizar_tiempo(-1); // Decrementamos el tiempo en 1 segundo
                 comprobarDerrota(); // Comprobamos si hemos perdido
-                this.tablero = main.rellenar_huecos(this.tablero, this.colores);
-                actualizar_tablero(); // Actualizamos el tablero
             }
         }));
         hilos.get(hilos.size()-1).start(); // Iniciamos el hilo
+
+        Thread hilo_rellenador = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!terminado) { // Mientras el juego no haya terminado
+                    try{
+                        semaforo_relleno.acquire();
+                        tablero = main.rellenar_huecos(tablero, colores);
+                        actualizar_tablero(); // Actualizamos el tablero
+                    }catch (InterruptedException e){
+                        break;
+                    }finally {
+                        semaforo_IA.release();
+                    }
+
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            }
+        });
+        hilos.add(hilo_rellenador);
+        hilo_rellenador.start();
     }
+
+
 
     /**
      * Transforma una cadena que representa un nivel en un array de enteros
@@ -191,12 +222,13 @@ public class Game extends JDialog {
             vidasLabel.setText(Integer.valueOf(vidasLabel.getText()) - 1 + "");
         }
 
-
         comprobarDerrota();
         // Cambiamos el background de los botones en función del nuevo tablero
         actualizar_tablero();
         // Comprobamos si el tablero se ha vaciado
         comprobarVictoria();
+
+        semaforo_relleno.release();
     }
 
     /**
@@ -304,20 +336,28 @@ public class Game extends JDialog {
                 continue;
             }
 
-            // Obtenemos la mejor coordenada (SCALA)
-            List<Object> coords = main.mejor_coordenada(this.tablero);
-            //List<Object> coords = main.obtener_coordenadas_bloque_IA(main.list_to_par(this.tablero));
-            // Obtenemos el botón correspondiente a esa coordenada (SWING)
-            JButton button = (JButton) board.getComponent((main.obtener_columna(coords, 0)) * columnas + main.obtener_columna(coords, 1));
-            // Pulsamos el botón como haría el usuario
-            button.doClick();
+            try {
+                semaforo_IA.acquire();
 
-            // Tiempo de espera para una mejor visualización
-            /*try {
-                Thread.sleep(500);
+                // Obtenemos la mejor coordenada (SCALA)
+                List<Object> coords = main.mejor_coordenada(this.tablero);
+                //List<Object> coords = main.obtener_coordenadas_bloque_IA(main.list_to_par(this.tablero));
+                // Obtenemos el botón correspondiente a esa coordenada (SWING)
+                JButton button = (JButton) board.getComponent((main.obtener_columna(coords, 0)) * columnas + main.obtener_columna(coords, 1));
+                // Pulsamos el botón como haría el usuario
+                button.doClick();
+
+                // Tiempo de espera para una mejor visualización
+                /*try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }*/
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
+            }finally {
+                semaforo_relleno.release();
+            }
         }
     }
 
