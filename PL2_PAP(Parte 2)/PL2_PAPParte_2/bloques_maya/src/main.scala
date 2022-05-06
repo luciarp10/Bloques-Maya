@@ -281,7 +281,7 @@ object main extends App {
    */
   def desplazar_bloques(tablero: List[List[Int]]):List[List[Int]] = {
     /**
-     * Función auxiliar que desplaza las posiciones de una columna vacía del tablero a la derecha del todo.
+     * Función auxiliar que desplaza todos los huecos de una columna a la parte superior.
      * @param tablero Tablero a modificar.
      * @param fila Posicion del siguiente bloque a mover.
      * @param columna Columna del tablero a modificar.
@@ -305,7 +305,7 @@ object main extends App {
     }
 
     /**
-     * Desplaza las columnas vacías hacia la derecha del tablero hasta que aplicar esta función no tenga ningún efecto.
+     * Desplaza las casillas vacías a la parte superior de su columna.
      * @param tablero Tablero a modificar.
      * @param nuevo_tablero Tablero modificado.
      * @return Tablero modificado.
@@ -316,13 +316,13 @@ object main extends App {
     }
 
     /**
-     * Función que desplaza los bloques que se encuentren "flotando" en el tablero hacia abajo.
+     * Función que desplaza las columnas vacías a la derecha del tablero.
      * @param tablero Tablero a recolocar.
      * @param fila Posicion de la fila del bloque a mover.
      * @param columna Posicion de la columna del bloque a mover
      * @return Tablero con los huecos en la parte superior de las columnas.
      */
-    @tailrec
+    /*@tailrec
     def desplazar_fila(tablero:List[List[Int]], fila:Int, columna:Int):List[List[Int]] = {
       if (columna == tablero.head.length - 1) tablero
       else if (fila!=tablero.length && es_columna_vacia(tablero, columna)) {
@@ -331,7 +331,7 @@ object main extends App {
         desplazar_fila(tablero_hueco_movido, fila + 1, columna)
       }
       else desplazar_fila(tablero,0, columna+1)
-    }
+    }*/
 
     /**
      * Comprueba si una columna está vacía. Comprueba si la posición de la columna de la última fila es 0, entonces asumimos toda la columna vacío.
@@ -357,12 +357,34 @@ object main extends App {
       else {
         val tablero_bajado = desplazar_bloques_aux(tablero, fila, columna + 1)
         val tablero_desplazado = desplazar_columna(tablero_bajado, Nil)
-        if (es_columna_vacia(tablero_desplazado, columna)) desplazar_fila(tablero_desplazado, 0 ,columna)
-        else tablero_desplazado
+        tablero_desplazado
       }
     }
     desplazar_bloques_aux(tablero,  0, 0)
   }
+
+  /**
+   * Funcion que recorre el tablero comprobando si las posiciones están vacías (valor 0) y en ese caso se rellenan con un color
+   * aleatorio del set de colores que tenemos para este tablero.
+   * @param tablero
+   * @param fila
+   * @param columna
+   * @param colores
+   * @return
+   */
+  def rellenar_huecos(tablero: List[List[Int]], colores: Set[Int]): List[List[Int]] = {
+    def rellenar_huecos_aux(tablero: List[List[Int]], fila: Int, columna: Int, colores: Set[Int]): List[List[Int]] = {
+      if (fila == tablero.length) tablero
+      else if (columna == tablero.head.length) rellenar_huecos_aux(tablero, fila + 1, 0, colores)
+      else if (obtener_posicion(tablero, fila, columna) == 0) {
+        val tablero_nuevo = cambiar_estado(tablero, fila, columna, Random.shuffle(colores).head)
+        rellenar_huecos_aux(tablero_nuevo, fila, columna + 1, colores)
+      }
+      else rellenar_huecos_aux(tablero, fila, columna + 1, colores)
+    }
+    rellenar_huecos_aux(tablero, 0, 0, colores)
+  }
+
 
   /**
    * Comprueba si una matriz contiene una posicion concreta
@@ -524,23 +546,29 @@ object main extends App {
     }
   }
 
+  def n_colores(nivel:Int):Int = nivel match{
+    case 1 => 3
+    case 2 => 5
+    case 3 => 7
+  }
+
   /**
    * En funcion del nivel seleccionado, se genera un tablero con un determinado numero de colores, desde 1 hasta el maximo de ese nivel
    * y un numero de vidas que tambien depende del nivel.
    * @param nivel nivel seleccionado
    * @return tablero del nivel indicado
    */
-  def generar_tablero(nivel: Int):List[List[Int]] = nivel match {
+  def generar_tablero(nivel: Int, colores:Set[Int]):List[List[Int]] = nivel match {
     case 1 =>
-      val colores = colores_tablero(3)
+      //val colores = colores_tablero(3)
       val tablero = generar_tablero_aleatorio(9,11, colores)
       colocar_bombas(tablero, 2)
     case 2 =>
-      val colores = colores_tablero(5)
+      //val colores = colores_tablero(5)
       val tablero = generar_tablero_aleatorio(12,16,colores)
       colocar_bombas(tablero, 3)
     case 3 =>
-      val colores = colores_tablero(7)
+      //val colores = colores_tablero(7)
       val tablero = generar_tablero_aleatorio(25,15,colores)
       colocar_bombas(tablero, 5)
   }
@@ -567,7 +595,8 @@ object main extends App {
         println("Has perdido la partida. Tu puntuación ha sido: " + puntuacion +" en " + partidas + " partidas.")
         menu()
       case _ =>
-        val tablero = generar_tablero(nivel)
+        val colores = colores_tablero(n_colores(nivel))
+        val tablero = generar_tablero(nivel,colores)
         val datos = jugar(tablero, puntuacion, vidas)
 
         if (obtener_columna(datos, 1) == 0) bucle_juego(nivel, puntuacion, 0, partidas+1)
@@ -707,7 +736,8 @@ object main extends App {
       println("Partida finalizada con "+ puntuacion+ " puntos en "+partidas+" partidas.")
       tablero
     }else if (tablero_vacio(tablero)){
-      lanzarIA(generar_tablero(nivel), puntuacion, 8, nivel, partidas+1)
+      val colores = colores_tablero(n_colores(nivel))
+      lanzarIA(generar_tablero(nivel,colores), puntuacion, 8, nivel, partidas+1)
     } else{
       println("Puntuacion: "+puntuacion+" Vidas: "+vidas)
       val coords = mejor_coordenada(tablero)
@@ -732,7 +762,7 @@ object main extends App {
       case 1 => bucle_juego(1, 0, 8, 0)
       case 2 => bucle_juego(2, 0, 10,0)
       case 3 => bucle_juego(3, 0, 15,0)
-      case 4 => lanzarIA(generar_tablero(1), 0, 8, 1, 0)
+      case 4 => lanzarIA(generar_tablero(1, colores_tablero(n_colores(1))), 0, 8, 1, 0)
       case 5 => println("Salir.")
       case _ =>
         println("Elige un nivel válido")

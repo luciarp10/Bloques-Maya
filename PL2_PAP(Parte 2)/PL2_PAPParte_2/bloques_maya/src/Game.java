@@ -1,9 +1,14 @@
 import scala.collection.immutable.List;
+import scala.collection.immutable.Set;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 public class Game extends JDialog {
@@ -19,6 +24,7 @@ public class Game extends JDialog {
 
     // Estructuras de datos de control y lógica de juego
     private List<List<Object>> tablero;
+    private Set<Object> colores;
     private int puntuacion_acumuluda = 0;
     private final ArrayList<Thread> hilos;
 
@@ -75,12 +81,14 @@ public class Game extends JDialog {
             while (!terminado) { // Mientras el juego no haya terminado
                 // Actualizamos el tiempo cada vez que pasa un segundo y comprobamos que no hemos perdido
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     break;
                 }
                 actualizar_tiempo(-1); // Decrementamos el tiempo en 1 segundo
                 comprobarDerrota(); // Comprobamos si hemos perdido
+                this.tablero = main.rellenar_huecos(this.tablero, this.colores);
+                actualizar_tablero(); // Actualizamos el tablero
             }
         }));
         hilos.get(hilos.size()-1).start(); // Iniciamos el hilo
@@ -208,7 +216,8 @@ public class Game extends JDialog {
         board.setLayout(new GridLayout(filas, columnas));
 
         // Generamos un tablero nuevo en función del nivel como entero (SCALA)
-        this.tablero = main.generar_tablero(nivel_int[2]);
+        this.colores = main.colores_tablero(main.n_colores(nivel_int[2]));
+        this.tablero = main.generar_tablero(nivel_int[2], colores);
 
         // Creamos tantos botones como casillas tiene el tablero (SWING)
         for (int i = 0; i < filas; i++) {
@@ -277,6 +286,7 @@ public class Game extends JDialog {
                 // Obtenemos los botones según su posición y le asignamos el color correspondiente (SCALA)
                 JButton button = (JButton) board.getComponent(i * columnas + j);
                 button.setBackground(get_color(main.obtener_posicion(tablero, i, j)));
+                board.repaint();
             }
         }
     }
